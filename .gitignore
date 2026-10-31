@@ -2,4 +2,3 @@
 .venv/
 spike/out/
 __pycache__/
-engine/cache/
