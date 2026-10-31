@@ -288,7 +288,7 @@ class Engine:
                         msg = json.loads(raw)
                         if msg["type"] == "intent":
                             asyncio.create_task(self.on_intent(msg["data"]))
-            except (OSError, websockets.ConnectionClosed) as e:
+            except (OSError, websockets.exceptions.WebSocketException) as e:  # incl. a half-started server
                 log(f"disconnected ({type(e).__name__}); retrying")
                 await asyncio.sleep(1)
 
