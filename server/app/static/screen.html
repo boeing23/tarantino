@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="/static/vendor/daisyui-themes.css">
 <script src="/static/vendor/tailwind.js"></script>
 <script src="/static/live.js"></script>
+<script src="/static/player.js"></script>
 <script>
 function screen() {
   return {
@@ -18,17 +19,24 @@ function screen() {
     chosen: null,
     feed: [],
     joinUrl: "",
+    playback: { index: 0, holding: false, elapsed: 0, total: 0, line: null },
+    soundOn: false,
     init() {
       this.tick();
       this.refreshJoin();
       setInterval(() => this.refreshJoin(), 5000);
       const audio = this.$refs.audio;
+      // kept outside Alpine's reactive state: it owns the <video> elements directly
+      const player = shotPlayer([this.$refs.videoA, this.$refs.videoB], (p) => (this.playback = p));
+      this.enableSound = () => { this.soundOn = true; player.setSound(true); };
       live("screen", {
         status: (s) => (this.status = s),
         beat: (b) => {
           this.beat = b;
+          if (b.shots?.length) { player.load(b.shots); return; }
           if (b.audio_url) { audio.src = b.audio_url; audio.play().catch(() => {}); }
         },
+        clip: (c) => { if (this.beat?.beat_id === c.beat_id) player.addClip(c.shot_id, c.video_url); },
         window: (w) => {
           this.windowState = w.state;
           if (w.state === "open") this.start(w.locks_in_s);
@@ -36,6 +44,13 @@ function screen() {
         whisper: (w) => (this.feed = [{ id: crypto.randomUUID(), text: w.text }, ...this.feed].slice(0, 12)),
         intent: (i) => (this.chosen = i),
       });
+    },
+    get line() { return this.playback.line; },
+    get holding() { return this.playback.holding; },
+    enableSound() {},
+    fullscreen() {
+      const el = this.$refs.stage;
+      document.fullscreenElement ? document.exitFullscreen() : el.requestFullscreen?.().catch(() => {});
     },
     async refreshJoin() {
       try { this.joinUrl = (await (await fetch("/join")).json()).url; } catch {}
@@ -48,10 +63,25 @@ function screen() {
 </head>
 <body class="bg-black">
 <main x-data="screen()" class="grid min-h-dvh grid-cols-1 lg:h-dvh lg:grid-cols-[1fr_22rem]">
-  <section class="relative min-h-[60dvh] bg-cover bg-center"
+  <section x-ref="stage" class="relative min-h-[60dvh] overflow-hidden bg-black bg-cover bg-center"
     :style="beat?.image_url ? `background-image:url('${beat.image_url}')` : ''">
+    <video x-ref="videoA" x-show="beat?.shots?.length" class="absolute inset-0 h-full w-full object-contain opacity-0 transition-opacity duration-150"></video>
+    <video x-ref="videoB" x-show="beat?.shots?.length" class="absolute inset-0 h-full w-full object-contain opacity-0 transition-opacity duration-150"></video>
+    <div class="absolute left-4 top-4 z-10 flex gap-2">
+      <button x-show="beat?.shots?.length && !soundOn" @click="enableSound()" class="btn btn-sm btn-primary">Tap for sound</button>
+      <button @click="fullscreen()" class="btn btn-sm btn-ghost bg-black/40" aria-label="Fullscreen">⛶</button>
+    </div>
+    <div x-show="beat?.shots?.length" class="absolute inset-x-0 top-0 z-10 h-1 bg-white/10">
+      <div class="h-full bg-primary transition-[width] duration-300" :style="`width:${playback.total ? playback.elapsed / playback.total * 100 : 0}%`"></div>
+    </div>
     <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/80 to-transparent p-6 pt-24 lg:p-12 lg:pt-32">
-      <template x-if="beat">
+      <template x-if="beat?.shots?.length">
+        <div x-show="line" x-transition>
+          <div class="badge badge-primary badge-lg mb-3" x-show="line" x-text="line?.speaker"></div>
+          <p class="text-2xl leading-snug text-white lg:text-4xl" x-text="line?.text ?? ''"></p>
+        </div>
+      </template>
+      <template x-if="beat && !beat.shots?.length">
         <div x-transition>
           <div class="badge badge-primary badge-lg mb-3" x-text="beat.speaker"></div>
           <p class="text-2xl leading-snug text-white lg:text-4xl" x-text="beat.text"></p>

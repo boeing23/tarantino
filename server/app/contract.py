@@ -35,6 +35,19 @@ class AudienceIntent(_Open):
     comment_count: int = 0
 
 
+class Line(_Open):
+    speaker: str
+    text: str
+
+
+class Shot(_Open):
+    shot_id: str
+    index: int
+    duration_s: float
+    line: Line | None = None
+    video_url: str | None = None
+
+
 class Beat(_Open):
     beat_id: str
     text: str
@@ -44,6 +57,23 @@ class Beat(_Open):
     acknowledged_whispers: list[str] = []
     duration_s: float = 60.0
     is_ending: bool = False
+    shots: list[Shot] = []
+    lock_lead_s: float | None = None
+    ending_id: str | None = None
+    is_bridge: bool = False
+
+
+class Clip(_Open):
+    beat_id: str
+    shot_id: str
+    video_url: str
+
+
+class Hello(_Open):
+    moods: list[str] = []
+    lock_lead_s: float | None = None
+    phone_prompt: str | None = None
+    seed_suggestions: list[str] = []
 
 
 class Whisper(_Open):
@@ -65,7 +95,7 @@ class Error(_Open):
     message: str
 
 
-INBOUND: dict[str, type[BaseModel]] = {"comment": Comment, "beat": Beat}
+INBOUND: dict[str, type[BaseModel]] = {"comment": Comment, "beat": Beat, "clip": Clip, "hello": Hello}
 ALL: dict[str, type[BaseModel]] = {
     **INBOUND,
     "intent": AudienceIntent,

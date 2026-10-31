@@ -34,10 +34,10 @@ Beyond the schema, the validator checks that ids are unique, opening speakers ar
 | `characters` | State, Beat generator, Render, Guardrails | `voice.description` is repeated in every clip prompt so the voice stays the same (and picks the backup TTS voice); `portrait_prompt` is pre-rendered into a reference image passed to the video model |
 | `opening` | Pipelining | `shots` and audio are fully pre-rendered before the show so beat 1 plays instantly |
 | `beats` | Beat generator, Guardrails, Render | `must_hit` always happens; the crowd only steers `flexible`; `shots` are anchor shots the live writer adapts and fills out to chapter length |
-| `endings` | State, Beat generator, Pipelining | Crowd moods add up across windows; the ending with the highest tally whose `required_flags` are true wins; its `shots` are pre-rendered |
+| `endings` | State, Beat generator, Pipelining | Crowd moods add up across windows; the ending with the highest tally whose `required_flags` are true wins; its `shots` are pre-rendered. Ties go to the ending listed first, so **the first ending is what a silent room gets** |
 | `forbidden` | Guardrails | Per act; a generated beat that does one of these is retried or replaced |
 | `state_seed` | State | Starting state right after the opening |
-| `bridges` | Pipelining | Pre-rendered clips played if the next beat is late; must not move the plot |
+| `bridges` | Pipelining | Pre-rendered clips played, in order, whenever the next chapter is late; they open no comment window and must not move the plot |
 | `audience_hooks` | Phone page | `seed_suggestions` fill the feed when the room is quiet |
 
 ## Shots

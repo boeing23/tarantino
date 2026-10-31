@@ -14,6 +14,7 @@ function audience() {
     ...countdown(),
     status: "connecting",
     beat: null,
+    prompt: "What should happen next?",
     windowState: null,
     chosen: null,
     text: "",
@@ -26,6 +27,7 @@ function audience() {
       this.conn = live("audience", {
         status: (s) => (this.status = s),
         beat: (b) => (this.beat = b),
+        hello: (h) => { if (h.phone_prompt) this.prompt = h.phone_prompt; },
         window: (w) => {
           this.windowState = w.state;
           if (w.state === "open") this.start(w.locks_in_s);
@@ -86,7 +88,7 @@ function audience() {
       </div>
       <div class="h-2 w-full overflow-hidden rounded-full bg-base-300"><div class="h-full rounded-full bg-success transition-[width] duration-300" :style="`width:${windowState === 'open' ? progress() : 0}%`"></div></div>
       <textarea class="textarea textarea-lg w-full" rows="3" maxlength="280" x-model="text"
-        placeholder="What should happen next?" @keydown.enter.prevent="submit"></textarea>
+        :placeholder="prompt" @keydown.enter.prevent="submit"></textarea>
       <button class="btn btn-primary btn-lg w-full" :disabled="!text.trim() || status !== 'live'">Send suggestion</button>
     </form>
   </section>

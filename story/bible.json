@@ -1,255 +1,267 @@
 {
   "meta": {
     "placeholder": true,
-    "title": "Last Stop, No Stop",
-    "logline": "Four strangers on a night train stalled in a snowbound valley realize one of them stole a locked case, and the train will not move until it is returned.",
-    "genre": "mystery thriller",
+    "title": "Pre-Revenue",
+    "logline": "A laid-off product manager crashes an SF rooftop launch party pretending to be an AI founder, and has until the midnight lightning demo to make the lie real or get caught.",
+    "genre": "satirical comedy",
     "rating": "PG-13",
-    "target_runtime_min": 8,
+    "target_runtime_min": 10,
     "beat_seconds": 120,
-    "lock_seconds_before_end": 50
+    "lock_seconds_before_end": 65
   },
   "world": {
-    "place": "A single sleeper car of an overnight train, stopped in a snowbound mountain valley",
-    "time": "Present day, 2 a.m., one night",
+    "place": "A rooftop launch party in SoMa, San Francisco, with a small stage for lightning demos",
+    "time": "Present day, one night, from sunset to just after midnight",
     "tone": [
-      "tense",
-      "wry",
-      "claustrophobic",
-      "intimate"
+      "satirical",
+      "fast",
+      "cringe-funny",
+      "warm underneath"
     ],
     "rules": [
-      "No phone signal and no way off the train until dawn.",
-      "The conductor speaks only over the intercom and is never seen.",
-      "Nobody has any supernatural ability."
+      "No real companies, products, funds or real people are ever named; invent everything.",
+      "Everyone speaks in startup jargon, and nobody admits they don't understand it.",
+      "Nobody is ever physically hurt; stakes are social and financial.",
+      "The lightning demo starts at midnight no matter what."
     ]
   },
   "moods": [
-    "suspicious",
-    "trusting",
-    "reckless",
-    "cautious",
-    "playful"
+    "hype",
+    "skeptical",
+    "chaotic",
+    "wholesome",
+    "ruthless"
   ],
   "style": {
-    "visual_prompt": "Cinematic, 35mm film grain, muted teal and amber palette, cramped train interior",
-    "camera": "Tight medium shots, shallow depth of field, occasional low angle",
-    "lighting": "Flickering warm cabin lights against cold blue snow outside the windows",
-    "motion": "Slow push-ins, subtle handheld sway from the train rocking, snow drifting past windows",
-    "negative_prompt": "text, watermark, logos, extra limbs, cartoon, daylight, morphing faces",
+    "visual_prompt": "2D animated satirical comedy, bold clean outlines, flat vibrant colors, expressive cartoon characters, San Francisco rooftop party at night with string lights and fog",
+    "camera": "Animated sitcom framing: medium shots, snappy push-ins on reactions, occasional glance to camera",
+    "lighting": "Warm string lights and neon accents, laptop glow on faces, simple cel shading",
+    "motion": "Snappy cartoon timing, exaggerated expressions, light camera drift",
+    "negative_prompt": "photorealistic, live action, 3D render, text, logos, brand names, watermark, extra limbs, distorted faces",
     "aspect_ratio": "16:9",
     "clip_seconds": 6
   },
   "characters": [
     {
-      "id": "mara",
-      "name": "Mara Voss",
+      "id": "rory",
+      "name": "Rory Vance",
       "role": "protagonist",
-      "want": "Reach the city by morning for her sister's custody hearing",
-      "secret": "She saw who carried the case aboard and has said nothing",
+      "want": "Get a term sheet tonight so he can make rent without admitting he was laid off",
+      "secret": "His startup, an AI that negotiates with your houseplants, is one slide deck and a soil sensor taped to a fern",
       "voice": {
-        "speech_style": "Direct, dry humor, short sentences, deflects with questions",
-        "description": "Woman, mid-30s, low and steady"
+        "speech_style": "Overconfident buzzwords that crack into panic, talks fast, says 'we' about himself",
+        "description": "Man, early 30s, American, quick nervous tenor"
       },
-      "portrait_prompt": "Woman in her 30s, dark wool coat, tired sharp eyes, hair tied back",
+      "portrait_prompt": "Man in his early 30s, fleece vest over a button-down, lanyard, carrying a potted fern, nervous grin",
+      "can_die_after_beat": null
+    },
+    {
+      "id": "nadia",
+      "name": "Nadia Okoro",
+      "role": "wildcard",
+      "want": "Find the next breakout company before her rivals do",
+      "secret": "Her fund has one investment left before her partners shut it down",
+      "voice": {
+        "speech_style": "Calm, clipped, asks one devastating question at a time",
+        "description": "Woman, 40s, British accent, low and unhurried"
+      },
+      "portrait_prompt": "Woman in her 40s, tailored black blazer, sneakers, sparkling water in hand, appraising stare",
       "can_die_after_beat": null
     },
     {
       "id": "theo",
-      "name": "Theo Lark",
-      "role": "wildcard",
-      "want": "Keep everyone calm so nobody searches his bag",
-      "secret": "He is carrying cash he cannot explain, unrelated to the case",
+      "name": "Theo Lindqvist",
+      "role": "antagonist",
+      "want": "Win the midnight demo slot and Nadia's money for his own startup",
+      "secret": "Most of his startup's ten thousand users are bots he wrote",
       "voice": {
-        "speech_style": "Charming, talks too much when nervous, lots of jokes",
-        "description": "Man, late 20s, quick and bright"
+        "speech_style": "Smug, polished, laughs at his own jokes, name-drops imaginary billionaires",
+        "description": "Man, late 20s, Scandinavian-American, smooth and bright"
       },
-      "portrait_prompt": "Young man, rumpled suit, loosened tie, easy grin that does not reach his eyes",
+      "portrait_prompt": "Man in his late 20s, black turtleneck, AirPod-style earbuds, perfect hair, holding a branded water bottle with no logo",
       "can_die_after_beat": null
     },
     {
-      "id": "ines",
-      "name": "Ines Okafor",
+      "id": "jun",
+      "name": "Jun Park",
       "role": "ally",
-      "want": "Get the case back to its owner, who she claims is her employer",
-      "secret": "She was hired to steal the case and lost it",
+      "want": "Go home; he only came for the free dumplings",
+      "secret": "He is a far better engineer than anyone on the roof, Rory included",
       "voice": {
-        "speech_style": "Precise, formal, never raises her voice",
-        "description": "Woman, 40s, crisp and measured"
+        "speech_style": "Deadpan, one-liners, sighs before every sentence",
+        "description": "Man, late 20s, Korean-American, flat and dry"
       },
-      "portrait_prompt": "Woman in her 40s, tailored grey coat, leather gloves, composed expression",
-      "can_die_after_beat": "beat_standoff"
-    },
-    {
-      "id": "pell",
-      "name": "Mr. Pell",
-      "role": "antagonist",
-      "want": "Leave the train with the case before dawn",
-      "secret": "He has the case hidden in the luggage rack under a false bottom",
-      "voice": {
-        "speech_style": "Soft, polite, old-fashioned phrasing, long pauses",
-        "description": "Man, 60s, gentle and slow"
-      },
-      "portrait_prompt": "Older man, neat white beard, round glasses, cardigan, reading a paperback",
-      "can_die_after_beat": "beat_standoff"
+      "portrait_prompt": "Man in his late 20s, hoodie, laptop covered in stickers with no logos, paper plate of dumplings",
+      "can_die_after_beat": null
     }
   ],
   "opening": {
-    "narration": "The train shudders to a stop in the dark. Snow presses against the windows. Then the intercom crackles.",
+    "narration": "San Francisco. Sunset. Somewhere in SoMa, a rooftop full of people pretending to be busier than they are.",
     "lines": [
       {
-        "speaker": "narrator",
-        "text": "Attention, sleeper car. A locked case was taken from the guard's van. This train does not move until it is returned."
+        "speaker": "rory",
+        "text": "Okay. You are a founder. Founders say 'we' and 'scale'."
       },
       {
-        "speaker": "theo",
-        "text": "Well. That's a great way to wake up."
+        "speaker": "jun",
+        "text": "You are holding a fern."
       },
       {
-        "speaker": "ines",
-        "text": "Nobody leaves this car until we find it."
-      },
-      {
-        "speaker": "pell",
-        "text": "Perhaps we might all sit down and be civil about this."
-      },
-      {
-        "speaker": "mara",
-        "text": "Or perhaps one of us should start talking."
+        "speaker": "rory",
+        "text": "The fern is the product, Jun."
       }
     ],
     "shots": [
       {
-        "frame": "Exterior: a lone night train stopped in a snowbound valley, windows glowing",
-        "motion": "Slow aerial drift toward the train as snow falls",
-        "sound": "Wind, train brakes hissing, intercom crackle",
+        "frame": "San Francisco skyline at sunset, fog rolling in, a crowded rooftop party with string lights",
+        "motion": "Slow aerial drift toward the rooftop",
+        "sound": "City hum, distant party music, a cable car bell",
         "line": {
           "speaker": "narrator",
-          "text": "This train does not move until the case is returned."
+          "text": "A rooftop full of people pretending to be busier than they are."
         }
       },
       {
-        "frame": "Four strangers in a narrow sleeper car corridor under an intercom speaker",
-        "motion": "Slow push-in as they turn to look at each other",
+        "frame": "Rory in an elevator mirror, adjusting a name tag that reads Founder, holding a potted fern",
+        "motion": "Slow push-in as he practices a confident smile",
         "characters": [
-          "mara",
-          "theo",
-          "ines",
-          "pell"
+          "rory"
         ],
-        "sound": "Cabin hum, snow ticking on glass",
+        "sound": "Elevator hum, a soft ding",
         "line": {
-          "speaker": "mara",
-          "text": "Or perhaps one of us should start talking."
+          "speaker": "rory",
+          "text": "Okay. You are a founder. Founders say 'we' and 'scale'."
+        }
+      },
+      {
+        "frame": "Jun beside Rory in the elevator, deadpan, holding a paper plate of dumplings",
+        "motion": "Jun turns his head slowly to look at the fern",
+        "characters": [
+          "jun",
+          "rory"
+        ],
+        "sound": "Elevator doors opening onto party noise",
+        "line": {
+          "speaker": "jun",
+          "text": "You are holding a fern."
         }
       }
     ]
   },
   "beats": [
     {
-      "id": "beat_accusations",
+      "id": "beat_pitch",
       "act": 1,
-      "purpose": "Establish suspicion; everyone has a reason to look guilty",
-      "must_hit": "Each character gives an alibi, and one alibi has an obvious hole",
+      "purpose": "Rory's lie gets an audience it should never have had",
+      "must_hit": "Nadia overhears Rory's fake pitch and books him for the midnight lightning demo",
       "flexible": [
-        "Whose alibi cracks first",
-        "Who the crowd points at",
-        "Whether anyone searches a bag"
+        "How absurd the pitch gets",
+        "Which buzzwords he uses",
+        "Whether Jun plays along as CTO"
       ],
-      "max_words": 160,
+      "max_words": 220,
       "shots": [
         {
-          "frame": "Four strangers seated facing each other in a cramped compartment",
-          "motion": "Camera pans slowly from face to face, each glancing away",
+          "frame": "Rory at a high-top table pitching to strangers, fern on the table",
+          "motion": "Handheld push-in as he gestures wildly",
           "characters": [
-            "mara",
+            "rory"
+          ],
+          "sound": "Party chatter, clinking glasses",
+          "line": {
+            "speaker": "rory",
+            "text": "We're building agentic infrastructure for plants. Plants are the last untapped user base."
+          }
+        },
+        {
+          "frame": "Nadia behind Rory, lowering her sparkling water, eyebrow raised",
+          "motion": "Rack focus from Rory to Nadia",
+          "characters": [
+            "nadia"
+          ],
+          "sound": "Chatter drops away",
+          "line": {
+            "speaker": "nadia",
+            "text": "Midnight. Lightning demo. Show me the fern negotiating."
+          }
+        }
+      ]
+    },
+    {
+      "id": "beat_rival",
+      "act": 2,
+      "purpose": "The lie gets a witness who wants it to fail",
+      "must_hit": "Theo recognizes Rory and makes clear he knows Rory was laid off",
+      "flexible": [
+        "Whether Rory bluffs, bribes or begs",
+        "Who overhears",
+        "What Theo demands in exchange for silence"
+      ],
+      "max_words": 220,
+      "shots": [
+        {
+          "frame": "Theo appearing at Rory's shoulder with a smug grin, turtleneck, water bottle",
+          "motion": "Theo leans into frame as Rory freezes",
+          "characters": [
             "theo",
-            "ines",
-            "pell"
+            "rory"
           ],
-          "sound": "Low cabin hum, someone tapping a foot",
+          "sound": "A DJ transition, a laugh nearby",
           "line": {
             "speaker": "theo",
-            "text": "I was asleep. Ask anyone. Well, ask nobody, they were asleep too."
+            "text": "Rory! Didn't your whole team get laid off in March?"
           }
         }
       ]
     },
     {
-      "id": "beat_search",
+      "id": "beat_build",
       "act": 2,
-      "purpose": "Raise stakes; a false lead",
-      "must_hit": "Theo's bag is opened and the unexplained cash is found",
+      "purpose": "The lie tries to become real",
+      "must_hit": "Jun builds something that technically works in thirty minutes, held together with tape",
       "flexible": [
-        "Who opens the bag",
-        "How Theo reacts",
-        "Whether the group believes him"
+        "What the demo actually does",
+        "Where they hide to build it",
+        "Who helps or sabotages"
       ],
-      "max_words": 160,
+      "max_words": 220,
       "shots": [
         {
-          "frame": "Theo's open duffel bag on a bunk, bundles of cash inside",
-          "motion": "Bag tips, cash spills onto the floor, Theo freezes",
+          "frame": "Jun typing furiously on a laptop in a cramped rooftop storage room, fern wired to a tiny circuit board",
+          "motion": "Quick push-in on the screen glow on his face",
           "characters": [
-            "theo"
+            "jun"
           ],
-          "sound": "Zipper, paper bundles hitting the floor",
+          "sound": "Fast keyboard clatter, muffled party bass through the wall",
           "line": {
-            "speaker": "theo",
-            "text": "That is not what it looks like."
+            "speaker": "jun",
+            "text": "It works. Do not breathe on it."
           }
         }
       ]
     },
     {
-      "id": "beat_reveal",
-      "act": 2,
-      "purpose": "Midpoint twist",
-      "must_hit": "Mara admits she saw who carried the case aboard, but not who took it after",
-      "flexible": [
-        "Who Mara tells first",
-        "Whether Ines's cover slips",
-        "Whom the group now distrusts"
-      ],
-      "max_words": 160,
-      "shots": [
-        {
-          "frame": "Mara standing alone by a frosted window, the others behind her",
-          "motion": "Slow push-in on Mara as she turns to face them",
-          "characters": [
-            "mara"
-          ],
-          "sound": "Wind against the window",
-          "line": {
-            "speaker": "mara",
-            "text": "I saw who carried that case aboard."
-          }
-        }
-      ]
-    },
-    {
-      "id": "beat_standoff",
+      "id": "beat_stage",
       "act": 3,
-      "purpose": "Confrontation; the case is found",
-      "must_hit": "The case is found in the luggage rack and two people claim it",
+      "purpose": "The lie meets an audience",
+      "must_hit": "Rory starts the lightning demo on stage and something goes wrong live",
       "flexible": [
-        "Who finds it",
-        "Who sides with whom",
-        "Whether anyone tries to run"
+        "What breaks",
+        "How Rory improvises",
+        "What Theo does from the crowd"
       ],
-      "max_words": 180,
+      "max_words": 220,
       "shots": [
         {
-          "frame": "A suitcase pulled from the luggage rack, false bottom open, a locked case inside",
-          "motion": "Two pairs of hands reach for the case at once",
+          "frame": "Rory on a small stage under a projector, fern on a stool beside him, crowd holding up phones",
+          "motion": "Slow push-in as the projector flickers",
           "characters": [
-            "ines",
-            "pell"
+            "rory"
           ],
-          "sound": "Latch clicking open, sharp breath",
+          "sound": "Mic feedback, crowd murmur",
           "line": {
-            "speaker": "pell",
-            "text": "I believe that belongs to me."
+            "speaker": "rory",
+            "text": "Ladies and gentlemen. The fern will now negotiate its own water."
           }
         }
       ]
@@ -258,95 +270,97 @@
       "id": "beat_resolution",
       "act": 3,
       "purpose": "Land the chosen ending",
-      "must_hit": "The train starts moving again",
+      "must_hit": "Nadia makes her decision in front of everyone",
       "flexible": [
         "Which ending plays",
         "Final line of each character"
       ],
-      "max_words": 180,
+      "max_words": 220,
       "shots": [
         {
-          "frame": "The night train pulling out of the snowy valley at dawn",
-          "motion": "Wheels start turning, the train slides out of frame, snow swirls behind",
-          "sound": "Engine rumble building, wheels on rails"
+          "frame": "Nadia walking toward the stage through a parting crowd, phone in hand",
+          "motion": "Handheld follow from behind",
+          "characters": [
+            "nadia"
+          ],
+          "sound": "Crowd going quiet, one person coughs"
         }
       ]
     }
   ],
   "endings": [
     {
-      "id": "ending_justice",
-      "name": "Fair Trade",
-      "summary": "The group exposes Pell, Ines confesses, and the case goes back to the guard. Mara makes her hearing.",
+      "id": "ending_unicorn",
+      "name": "Pre-Revenue Unicorn",
+      "summary": "Nadia funds the fern anyway because the room went wild. Rory is now the CEO of something that does not exist.",
       "trigger_moods": [
-        "trusting",
-        "cautious"
-      ],
-      "required_flags": [
-        "mara_told_truth"
-      ],
-      "shots": [
-        {
-          "frame": "Mara stepping off the train onto a sunlit city platform",
-          "motion": "She exhales and walks out of frame",
-          "characters": [
-            "mara"
-          ],
-          "sound": "Station bustle, distant announcement",
-          "line": {
-            "speaker": "mara",
-            "text": "Right on time."
-          }
-        }
-      ]
-    },
-    {
-      "id": "ending_heist",
-      "name": "Everybody Gets a Cut",
-      "summary": "Theo talks the group into splitting what is inside. The train moves, and nobody will ever speak of it.",
-      "trigger_moods": [
-        "reckless",
-        "playful"
-      ],
-      "required_flags": [
-        "cash_found"
-      ],
-      "shots": [
-        {
-          "frame": "Three passengers around an open case, faces lit gold",
-          "motion": "Slow push-in as they look at each other and grin",
-          "characters": [
-            "mara",
-            "theo",
-            "ines"
-          ],
-          "sound": "Train rhythm, a quiet laugh",
-          "line": {
-            "speaker": "theo",
-            "text": "Nobody saw anything. Agreed?"
-          }
-        }
-      ]
-    },
-    {
-      "id": "ending_betrayal",
-      "name": "Into the Snow",
-      "summary": "Pell slips off the train with the case, and the group turns on Ines as the train leaves without him.",
-      "trigger_moods": [
-        "suspicious"
+        "hype",
+        "chaotic"
       ],
       "required_flags": [],
       "shots": [
         {
-          "frame": "Pell walking alone into the snow with the case, train pulling away behind him",
-          "motion": "Camera holds as he grows smaller",
+          "frame": "Rory on stage holding the fern above his head as confetti falls, Nadia shaking his hand",
+          "motion": "Slow motion confetti, camera rises",
           "characters": [
-            "pell"
+            "rory",
+            "nadia"
           ],
-          "sound": "Wind, fading train horn",
+          "sound": "Crowd cheering, confetti cannon",
           "line": {
-            "speaker": "pell",
-            "text": "Safe travels, everyone."
+            "speaker": "rory",
+            "text": "We're going to need a bigger fern."
+          }
+        }
+      ]
+    },
+    {
+      "id": "ending_exposed",
+      "name": "Viral for the Wrong Reasons",
+      "summary": "Theo exposes everything, the fail goes viral, and Rory launches a podcast about failing before Theo's bots are discovered.",
+      "trigger_moods": [
+        "skeptical",
+        "ruthless"
+      ],
+      "required_flags": [],
+      "shots": [
+        {
+          "frame": "Rory alone at the rooftop edge at dawn, phone showing a viral video of himself, fern beside him",
+          "motion": "Slow push-in as he starts recording a podcast on his phone",
+          "characters": [
+            "rory"
+          ],
+          "sound": "Morning birds, fog horn",
+          "line": {
+            "speaker": "rory",
+            "text": "Welcome to episode one of Failing Upward."
+          }
+        }
+      ]
+    },
+    {
+      "id": "ending_honest",
+      "name": "The Real Founder",
+      "summary": "Rory confesses on stage and points at Jun as the real talent. Nadia funds Jun, with Rory as his very humbled cofounder.",
+      "trigger_moods": [
+        "wholesome"
+      ],
+      "required_flags": [
+        "rory_confessed"
+      ],
+      "shots": [
+        {
+          "frame": "Jun on stage blinking under the lights, Rory pointing at him, Nadia nodding in the front row",
+          "motion": "Push-in on Jun's stunned face",
+          "characters": [
+            "jun",
+            "rory",
+            "nadia"
+          ],
+          "sound": "Scattered applause building",
+          "line": {
+            "speaker": "jun",
+            "text": "I came for the dumplings."
           }
         }
       ]
@@ -356,112 +370,115 @@
     {
       "act": 1,
       "actions": [
-        "Anyone dies or is seriously hurt",
-        "The case is found",
-        "Anyone leaves the train"
+        "Rory confesses",
+        "The demo happens early",
+        "Anyone leaves the party"
       ]
     },
     {
       "act": 2,
       "actions": [
-        "Mara dies",
-        "The case is opened",
-        "The conductor appears in person"
+        "The demo happens early",
+        "Nadia decides",
+        "Anyone gets physically hurt"
       ]
     },
     {
       "act": 3,
       "actions": [
-        "Mara dies",
-        "The conductor appears in person",
-        "A new character is introduced"
+        "A new character is introduced",
+        "Anyone gets physically hurt",
+        "The party moves to another location"
       ]
     }
   ],
   "state_seed": {
-    "location": "Sleeper car corridor",
-    "mood": "suspicious",
+    "location": "Rooftop elevator, arriving at the party",
+    "mood": "hype",
     "flags": {
-      "cash_found": false,
-      "mara_told_truth": false,
-      "ines_exposed": false,
-      "case_found": false
+      "rory_confessed": false,
+      "theo_knows": false,
+      "demo_built": false,
+      "theo_bots_exposed": false
     },
     "clues": [
       {
-        "id": "wet_boots",
-        "text": "Someone's boots are wet with melted snow",
+        "id": "laid_off_email",
+        "text": "Rory's phone shows an unread severance email",
         "revealed": false
       },
       {
-        "id": "torn_ticket",
-        "text": "A torn ticket stub for a different car",
+        "id": "bot_dashboard",
+        "text": "Theo's user dashboard updates suspiciously evenly",
         "revealed": false
       },
       {
-        "id": "false_bottom",
-        "text": "A suitcase in the rack sits oddly high",
+        "id": "fund_memo",
+        "text": "Nadia ignores calls from 'Partners - URGENT'",
         "revealed": false
       }
     ],
     "relationships": [
       {
-        "a": "mara",
-        "b": "theo",
-        "trust": 0.2
+        "a": "rory",
+        "b": "jun",
+        "trust": 0.6
       },
       {
-        "a": "mara",
-        "b": "ines",
+        "a": "rory",
+        "b": "theo",
+        "trust": -0.3
+      },
+      {
+        "a": "rory",
+        "b": "nadia",
         "trust": 0.0
       },
       {
-        "a": "mara",
-        "b": "pell",
-        "trust": 0.3
-      },
-      {
-        "a": "ines",
-        "b": "pell",
-        "trust": -0.2
-      },
-      {
         "a": "theo",
-        "b": "ines",
-        "trust": -0.1
+        "b": "nadia",
+        "trust": 0.2
+      },
+      {
+        "a": "jun",
+        "b": "theo",
+        "trust": -0.5
       }
     ]
   },
   "bridges": [
     {
-      "narration": "Wind rattles the windows. Somewhere down the train, a door bangs shut.",
+      "narration": "Somewhere on the roof, someone says 'it's like Uber, but for' and never finishes the sentence.",
       "shot": {
-        "frame": "Snow blowing past a dark train window, cabin light reflected in the glass",
-        "motion": "Snow streaks past, the reflection flickers"
+        "frame": "Wide shot of the rooftop crowd under string lights, fog behind the skyline",
+        "motion": "Slow pan across the crowd",
+        "sound": "Overlapping startup chatter"
       }
     },
     {
-      "narration": "The cabin lights flicker, and for a moment everyone is only a silhouette.",
+      "narration": "The dumpling tray empties. Nobody admits to taking the last one.",
       "shot": {
-        "frame": "Four silhouettes in a dim train corridor",
-        "motion": "Cabin lights flicker off and on"
+        "frame": "Close-up of an empty dumpling tray under string lights",
+        "motion": "Very slow push-in",
+        "sound": "Party bass, a laugh"
       }
     },
     {
-      "narration": "The intercom hums, as if someone is about to speak, then goes quiet again.",
+      "narration": "The fog rolls in. The fern, for its part, says nothing.",
       "shot": {
-        "frame": "Close-up of an old intercom speaker grille with a faint red light",
-        "motion": "Very slow push-in, the red light pulses once"
+        "frame": "The potted fern alone on a high-top table, fog drifting past the city lights",
+        "motion": "Slow orbit around the fern",
+        "sound": "Wind, muffled music"
       }
     }
   ],
   "audience_hooks": {
-    "phone_prompt": "Who do you trust, and what should they do next?",
+    "phone_prompt": "What should Rory do next?",
     "seed_suggestions": [
-      "Search Pell's luggage",
-      "Mara should tell everyone what she saw",
-      "Don't trust Ines",
-      "Theo is hiding something"
+      "Pitch it as AI for dogs instead",
+      "Make Jun the CTO",
+      "Bribe Theo with dumplings",
+      "Tell Nadia the truth"
     ]
   }
 }

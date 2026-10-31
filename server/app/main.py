@@ -15,7 +15,7 @@ from pydantic import ValidationError
 from app import events
 from app.aggregate import Aggregator, naive_aggregate
 from app.config import Settings
-from app.contract import INBOUND, Ack, Beat, Comment, Error, Whisper, envelope
+from app.contract import INBOUND, Ack, Beat, Clip, Comment, Error, Hello, Whisper, envelope
 from app.events import emit
 from app.hub import ROLES, Hub
 from app.join import Tunnel, resolve_join_url
@@ -24,7 +24,7 @@ from app.show import Show
 from app.window import CommentWindow
 
 STATIC = Path(__file__).parent / "static"
-ALLOWED = {"audience": {"comment"}, "engine": {"beat"}, "screen": set()}
+ALLOWED = {"audience": {"comment"}, "engine": {"beat", "clip", "hello"}, "screen": set()}
 
 
 def create_app(settings: Settings | None = None, aggregate: Aggregator = naive_aggregate) -> FastAPI:
@@ -127,6 +127,10 @@ def create_app(settings: Settings | None = None, aggregate: Aggregator = naive_a
                     await on_comment(ws, cid, model)
                 elif isinstance(model, Beat):
                     await show.enqueue(model)
+                elif isinstance(model, Clip):
+                    await show.clip(model)
+                elif isinstance(model, Hello):
+                    await show.hello(model)
         except WebSocketDisconnect as e:
             reason = f"code_{e.code}"
         except Exception as e:

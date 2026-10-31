@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from app.contract import AudienceIntent, Beat, Comment, Suggestion, envelope, parse
+from app.contract import AudienceIntent, Beat, Clip, Comment, Hello, Suggestion, envelope, parse
 
 
 def test_beat_minimal_fields_and_defaults():
@@ -47,3 +47,23 @@ def test_envelope_roundtrip():
 def test_parse_rejects_unknown_type():
     with pytest.raises(ValueError):
         parse({"type": "nope", "data": {}})
+
+
+def test_beat_carries_ordered_shots_with_optional_video():
+    b = Beat.model_validate({
+        "beat_id": "c1", "text": "t", "speaker": "narrator", "lock_lead_s": 40,
+        "shots": [
+            {"shot_id": "s0", "index": 0, "duration_s": 6, "video_url": "http://v/0.mp4",
+             "line": {"speaker": "dev", "text": "We're pre-seed."}},
+            {"shot_id": "s1", "index": 1, "duration_s": 6},
+        ],
+    })
+    assert b.shots[0].line.speaker == "dev" and b.shots[1].video_url is None
+    assert b.lock_lead_s == 40 and b.ending_id is None
+
+
+def test_clip_and_hello_parse():
+    typ, clip = parse({"type": "clip", "data": {"beat_id": "c1", "shot_id": "s1", "video_url": "http://v/1.mp4"}})
+    assert typ == "clip" and isinstance(clip, Clip)
+    typ, hello = parse({"type": "hello", "data": {"moods": ["hype", "chaotic"], "lock_lead_s": 40}})
+    assert typ == "hello" and isinstance(hello, Hello) and hello.moods == ["hype", "chaotic"]
