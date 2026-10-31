@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Whisper to the story</title>
+<style>
+  body { font-family: system-ui, sans-serif; background: #111; color: #eee; margin: 0 auto; padding: 20px; max-width: 640px; }
+  #beat { min-height: 4em; opacity: .8; }
+  form { display: flex; gap: 8px; }
+  input { flex: 1; font-size: 18px; padding: 12px; border-radius: 8px; border: 0; }
+  button { font-size: 18px; padding: 12px 16px; border-radius: 8px; border: 0; background: #e5b33b; }
+  #status { margin-top: 12px; opacity: .6; }
+</style>
+</head>
+<body>
+<p id="beat">Waiting for the story to begin…</p>
+<form id="f"><input id="t" maxlength="280" placeholder="What should happen next?" autocomplete="off"><button>Send</button></form>
+<p id="status">connecting…</p>
+<script>
+const proto = location.protocol === "https:" ? "wss" : "ws";
+const status = document.getElementById("status");
+let ws;
+function connect() {
+  ws = new WebSocket(`${proto}://${location.host}/ws/audience`);
+  ws.onopen = () => status.textContent = "connected";
+  ws.onclose = () => { status.textContent = "reconnecting…"; setTimeout(connect, 1000); };
+  ws.onmessage = (e) => {
+    const { type, data } = JSON.parse(e.data);
+    if (type === "beat") document.getElementById("beat").textContent = `${data.speaker}: ${data.text}`;
+    if (type === "ack") status.textContent = "sent ✓";
+    if (type === "error") status.textContent = data.message;
+    if (type === "window") status.textContent = data.state === "open" ? "listening…" : "deciding…";
+  };
+}
+connect();
+document.getElementById("f").onsubmit = (e) => {
+  e.preventDefault();
+  const t = document.getElementById("t");
+  if (t.value.trim() && ws.readyState === 1) ws.send(JSON.stringify({ type: "comment", data: { text: t.value } }));
+  t.value = "";
+};
+</script>
+</body>
+</html>

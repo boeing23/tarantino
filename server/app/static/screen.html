@@ -1,0 +1,58 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Tarantino</title>
+<style>
+  body { font-family: system-ui, sans-serif; background: #000; color: #eee; margin: 0; height: 100vh; display: grid; grid-template-columns: 3fr 1fr; }
+  #stage { position: relative; background: #000 center/cover no-repeat; }
+  #sub { position: absolute; bottom: 0; left: 0; right: 0; padding: 24px 40px; font-size: 32px; background: linear-gradient(transparent, #000c); }
+  #side { padding: 20px; background: #111; overflow: hidden; display: flex; flex-direction: column; gap: 16px; }
+  #chosen { font-size: 22px; color: #e5b33b; }
+  #losers, #feed { opacity: .7; list-style: none; padding: 0; margin: 0; }
+  #feed li { padding: 4px 0; border-bottom: 1px solid #222; }
+</style>
+</head>
+<body>
+<div id="stage"><div id="sub">Waiting for the story…</div></div>
+<div id="side">
+  <div id="window"></div>
+  <div id="chosen"></div>
+  <ul id="losers"></ul>
+  <ul id="feed"></ul>
+</div>
+<audio id="audio"></audio>
+<script>
+const proto = location.protocol === "https:" ? "wss" : "ws";
+const $ = (id) => document.getElementById(id);
+const handlers = {
+  beat(b) {
+    $("sub").textContent = `${b.speaker}: ${b.text}`;
+    if (b.image_url) $("stage").style.backgroundImage = `url("${b.image_url}")`;
+    if (b.audio_url) { $("audio").src = b.audio_url; $("audio").play().catch(() => {}); }
+  },
+  window(w) { $("window").textContent = w.state === "open" ? `Listening… (${Math.round(w.locks_in_s)}s)` : "Deciding…"; },
+  whisper(w) {
+    const li = document.createElement("li");
+    li.textContent = w.text;
+    $("feed").prepend(li);
+    while ($("feed").children.length > 15) $("feed").lastChild.remove();
+  },
+  intent(i) {
+    $("chosen").textContent = i.intent ? `Audience chose: ${i.intent}` : "No suggestions this round";
+    $("losers").replaceChildren(...i.top_suggestions.slice(1).map((s) => {
+      const li = document.createElement("li");
+      li.textContent = `${s.text} (${s.votes})`;
+      return li;
+    }));
+  },
+};
+function connect() {
+  const ws = new WebSocket(`${proto}://${location.host}/ws/screen`);
+  ws.onmessage = (e) => { const { type, data } = JSON.parse(e.data); handlers[type]?.(data); };
+  ws.onclose = () => setTimeout(connect, 1000);
+}
+connect();
+</script>
+</body>
+</html>

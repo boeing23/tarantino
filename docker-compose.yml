@@ -1,0 +1,25 @@
+services:
+  server:
+    build: ./server
+    image: tarantino-server
+    ports:
+      - "${PORT:-8000}:8000"
+    environment:
+      LOCK_LEAD_S: ${LOCK_LEAD_S:-5}
+      BLOCKLIST: ${BLOCKLIST:-}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]
+      interval: 2s
+      retries: 15
+
+  engine:
+    profiles: ["demo"]
+    image: tarantino-server
+    pull_policy: never
+    command: uv run --no-sync python scripts/fake_engine.py
+    environment:
+      ENGINE_URL: ws://server:8000/ws/engine
+      BEAT_DURATION_S: ${BEAT_DURATION_S:-20}
+    depends_on:
+      server:
+        condition: service_healthy
