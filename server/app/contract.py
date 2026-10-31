@@ -13,11 +13,16 @@ class _Open(BaseModel):
 class Comment(_Open):
     text: str = Field(min_length=1, max_length=280)
     client_id: str | None = None
+    mood: str | None = None
 
     @field_validator("text", mode="before")
     @classmethod
     def _strip(cls, v: Any) -> Any:
         return v.strip() if isinstance(v, str) else v
+
+
+class MoodVote(_Open):
+    mood: str
 
 
 class Suggestion(_Open):
@@ -33,6 +38,12 @@ class AudienceIntent(_Open):
     top_suggestions: list[Suggestion] = []
     mood: str | None = None
     comment_count: int = 0
+    mood_votes: dict[str, int] = {}
+
+
+class Line(_Open):
+    speaker: str
+    text: str
 
 
 class Beat(_Open):
@@ -44,6 +55,11 @@ class Beat(_Open):
     acknowledged_whispers: list[str] = []
     duration_s: float = 60.0
     is_ending: bool = False
+    lines: list[Line] = []
+    video_urls: list[str] = []
+    mood: str | None = None
+    bible_beat_id: str | None = None
+    ending_id: str | None = None
 
 
 class Whisper(_Open):
@@ -57,6 +73,10 @@ class WindowState(_Open):
     locks_in_s: float | None = None
 
 
+class Reset(_Open):
+    pass
+
+
 class Ack(_Open):
     window_id: int
 
@@ -65,13 +85,14 @@ class Error(_Open):
     message: str
 
 
-INBOUND: dict[str, type[BaseModel]] = {"comment": Comment, "beat": Beat}
+INBOUND: dict[str, type[BaseModel]] = {"comment": Comment, "mood": MoodVote, "beat": Beat}
 ALL: dict[str, type[BaseModel]] = {
     **INBOUND,
     "intent": AudienceIntent,
     "whisper": Whisper,
     "window": WindowState,
     "ack": Ack,
+    "reset": Reset,
     "error": Error,
 }
 

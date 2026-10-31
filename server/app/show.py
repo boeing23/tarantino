@@ -3,7 +3,7 @@ import time
 from collections import deque
 
 from app.aggregate import Aggregator
-from app.contract import AudienceIntent, Beat, Whisper, WindowState, envelope
+from app.contract import AudienceIntent, Beat, Reset, Whisper, WindowState, envelope
 from app.events import emit
 from app.hub import ROLES, Hub
 from app.metrics import Metrics
@@ -19,6 +19,10 @@ class Show:
         self.aggregate = aggregate
         self.lock_lead_s = lock_lead_s
         self.metrics = metrics
+        self.task: asyncio.Task | None = None
+        self.clear()
+
+    def clear(self) -> None:
         self.intent_sent_at: float | None = None
         self.queue: asyncio.Queue[Beat] = asyncio.Queue()
         self.current: Beat | None = None
@@ -27,6 +31,23 @@ class Show:
         self.lock_at = 0.0
         self.recent: deque[Whisper] = deque(maxlen=30)
         self.started = False
+
+    def start(self) -> None:
+        self.task = asyncio.create_task(self.run())
+
+    def stop(self) -> None:
+        if self.task:
+            self.task.cancel()
+
+    async def reset(self) -> None:
+        self.stop()
+        self.window.cut()
+        self.clear()
+        await self.hub.send(("screen", "audience"), envelope("reset", Reset()))
+        emit("show.reset")
+        for ws in list(self.hub.clients["engine"]):
+            await self.on_engine_connect(ws)
+        self.start()
 
     async def whisper(self, w: Whisper) -> None:
         self.recent.append(w)
@@ -83,12 +104,12 @@ class Show:
         await self.hub.send(ROLES, envelope("window", self.window_state))
         emit("window.open", window_id=wid, locks_in_s=open_for)
         await asyncio.sleep(open_for)
-        wid, comments = self.window.cut()
+        wid, comments, moods = self.window.cut()
         self.metrics.windows_total += 1
         self.window_state = WindowState(window_id=wid, state="locked")
         await self.hub.send(ROLES, envelope("window", self.window_state))
         emit("window.lock", window_id=wid, comments=len(comments))
-        intent = await self.aggregate(wid, comments)
+        intent = await self.aggregate(wid, comments, moods)
         self.last_intent = intent
         await self.hub.send(ROLES, envelope("intent", intent))
         self.intent_sent_at = time.monotonic()

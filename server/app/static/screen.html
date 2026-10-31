@@ -12,30 +12,49 @@
 function screen() {
   return {
     ...countdown(),
+    show: { title: "" },
     status: "connecting",
     beat: null,
+    beatStartedAt: 0,
+    clip: 0,
     windowState: null,
     chosen: null,
     feed: [],
     joinUrl: "",
-    init() {
+    soundOn: false,
+    async init() {
       this.tick();
       this.refreshJoin();
       setInterval(() => this.refreshJoin(), 5000);
-      const audio = this.$refs.audio;
       live("screen", {
         status: (s) => (this.status = s),
-        beat: (b) => {
-          this.beat = b;
-          if (b.audio_url) { audio.src = b.audio_url; audio.play().catch(() => {}); }
-        },
+        beat: (b) => this.play(b),
         window: (w) => {
           this.windowState = w.state;
           if (w.state === "open") this.start(w.locks_in_s);
         },
         whisper: (w) => (this.feed = [{ id: crypto.randomUUID(), text: w.text }, ...this.feed].slice(0, 12)),
         intent: (i) => (this.chosen = i),
+        reset: () => Object.assign(this, { beat: null, windowState: null, chosen: null, feed: [] }),
       });
+      try { this.show = await (await fetch("/show")).json(); document.title = this.show.title; } catch {}
+    },
+    play(b) {
+      this.beat = b;
+      this.beatStartedAt = Date.now();
+      this.clip = 0;
+      const audio = this.$refs.audio;
+      if (b.audio_url) { audio.src = b.audio_url; audio.play().catch(() => {}); }
+    },
+    nextClip() {
+      if (this.beat?.video_urls?.length) this.clip = (this.clip + 1) % this.beat.video_urls.length;
+    },
+    currentLine() {
+      const lines = this.beat?.lines ?? [];
+      if (!lines.length) return null;
+      const per = (this.beat.duration_s * 1000) / lines.length;
+      const i = Math.floor(Math.max(0, this.now - this.beatStartedAt) / per);
+      return lines[Math.min(lines.length - 1, i)];
     },
     async refreshJoin() {
       try { this.joinUrl = (await (await fetch("/join")).json()).url; } catch {}
@@ -48,18 +67,33 @@ function screen() {
 </head>
 <body class="bg-black">
 <main x-data="screen()" class="grid min-h-dvh grid-cols-1 lg:h-dvh lg:grid-cols-[1fr_22rem]">
-  <section class="relative min-h-[60dvh] bg-cover bg-center"
+  <section class="relative min-h-[60dvh] overflow-hidden bg-cover bg-center"
     :style="beat?.image_url ? `background-image:url('${beat.image_url}')` : ''">
+    <template x-if="beat?.video_urls?.length">
+      <video class="absolute inset-0 h-full w-full object-cover" autoplay playsinline :muted="!soundOn"
+        :src="beat.video_urls[clip]" @ended="nextClip()" :loop="beat.video_urls.length === 1"></video>
+    </template>
+    <header class="absolute inset-x-0 top-0 flex items-center justify-between gap-4 px-6 py-4 lg:px-12">
+      <h1 class="truncate text-sm uppercase tracking-[0.3em] text-white/60" x-text="show.title"></h1>
+      <div class="flex shrink-0 gap-2">
+        <button class="btn btn-xs btn-ghost text-white/70" x-show="!soundOn" @click="soundOn = true">Enable sound</button>
+        <span class="badge" :class="status === 'live' ? 'badge-success' : 'badge-warning'" x-text="status"></span>
+      </div>
+    </header>
     <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/80 to-transparent p-6 pt-24 lg:p-12 lg:pt-32">
       <template x-if="beat">
-        <div x-transition>
-          <div class="badge badge-primary badge-lg mb-3" x-text="beat.speaker"></div>
-          <p class="text-2xl leading-snug text-white lg:text-4xl" x-text="beat.text"></p>
+        <div class="flex flex-col gap-3">
+          <p class="text-lg text-white/70 lg:text-xl" x-text="beat.text"></p>
+          <template x-if="currentLine()">
+            <div>
+              <div class="badge badge-primary badge-lg mb-2" x-text="show.characters?.[currentLine().speaker] ?? currentLine().speaker"></div>
+              <p class="text-2xl leading-snug text-white lg:text-4xl" x-text="currentLine().text"></p>
+            </div>
+          </template>
         </div>
       </template>
       <p x-show="!beat" class="text-2xl text-white/60">The story is about to begin…</p>
     </div>
-    <span class="badge absolute right-4 top-4" :class="status === 'live' ? 'badge-success' : 'badge-warning'" x-text="status"></span>
   </section>
 
   <aside class="flex flex-col gap-4 overflow-hidden bg-base-200 p-4">
@@ -87,6 +121,7 @@ function screen() {
       <div class="card-body gap-3 p-4">
         <h2 class="text-xs uppercase tracking-widest opacity-60">Audience chose</h2>
         <p class="text-lg font-semibold text-primary" x-text="chosen?.intent ?? 'No suggestions this round'"></p>
+        <span class="badge badge-secondary capitalize" x-show="chosen?.mood" x-text="chosen?.mood"></span>
         <template x-for="s in chosen?.top_suggestions ?? []" :key="s.text">
           <div>
             <div class="flex justify-between text-sm"><span x-text="s.text"></span><span x-text="s.votes"></span></div>

@@ -28,3 +28,14 @@ def test_top_suggestions_capped_at_three_with_examples():
     i = run(["a1", "b2", "c3", "d4", "a1"])
     assert len(i.top_suggestions) == 3
     assert i.top_suggestions[0].examples == ["a1", "a1"]
+
+
+def test_mood_votes_counted_and_top_mood_wins():
+    i = asyncio.run(naive_aggregate(1, ["a", "b", "c"], ["suspicious", "trusting", "suspicious", None]))
+    assert i.mood == "suspicious"
+    assert i.mood_votes == {"suspicious": 2, "trusting": 1}
+
+
+def test_no_mood_votes_means_no_mood():
+    i = asyncio.run(naive_aggregate(1, ["a"], []))
+    assert i.mood is None and i.mood_votes == {}

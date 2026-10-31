@@ -1,12 +1,12 @@
 import re
-from collections import defaultdict
-from typing import Awaitable, Callable
+from collections import Counter, defaultdict
+from typing import Awaitable, Callable, Sequence
 
 from app.contract import AudienceIntent, Suggestion
 
 STOPWORDS = {"a", "an", "the", "to", "and", "of", "please", "should", "let", "lets"}
 
-Aggregator = Callable[[int, list[str]], Awaitable[AudienceIntent]]
+Aggregator = Callable[[int, list[str], Sequence[str | None]], Awaitable[AudienceIntent]]
 
 
 def _key(text: str) -> tuple[str, ...]:
@@ -14,9 +14,11 @@ def _key(text: str) -> tuple[str, ...]:
     return tuple(w for w in words if w not in STOPWORDS) or tuple(words)
 
 
-async def naive_aggregate(window_id: int, comments: list[str]) -> AudienceIntent:
+async def naive_aggregate(window_id: int, comments: list[str], moods: Sequence[str | None] = ()) -> AudienceIntent:
+    votes = Counter(m for m in moods if m)
+    mood = votes.most_common(1)[0][0] if votes else None
     if not comments:
-        return AudienceIntent(window_id=window_id)
+        return AudienceIntent(window_id=window_id, mood=mood, mood_votes=dict(votes))
     groups: dict[tuple[str, ...], list[str]] = defaultdict(list)
     for c in comments:
         groups[_key(c)].append(c)
@@ -28,4 +30,6 @@ async def naive_aggregate(window_id: int, comments: list[str]) -> AudienceIntent
         confidence=top[0].votes / len(comments),
         top_suggestions=top,
         comment_count=len(comments),
+        mood=mood,
+        mood_votes=dict(votes),
     )

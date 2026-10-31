@@ -63,3 +63,17 @@ def test_late_joiner_sees_recent_comments(client):
         with client.websocket_connect("/ws/audience") as late:
             texts = [late.receive_json()["data"]["text"] for _ in range(3)]
     assert texts == ["one", "two", "three"]
+
+
+def test_comment_mood_must_be_a_bible_mood(client):
+    with client.websocket_connect("/ws/audience") as phone:
+        phone.send_json({"type": "comment", "data": {"text": "hmm", "mood": "furious"}})
+        assert "mood" in recv_until(phone, "error")["data"]["message"]
+        phone.send_json({"type": "comment", "data": {"text": "hmm", "mood": "suspicious"}})
+        assert recv_until(phone, "ack")
+
+
+def test_mood_only_vote_is_allowed(client):
+    with client.websocket_connect("/ws/audience") as phone:
+        phone.send_json({"type": "mood", "data": {"mood": "playful"}})
+        assert recv_until(phone, "ack")
