@@ -1,0 +1,467 @@
+{
+  "meta": {
+    "placeholder": true,
+    "title": "Last Stop, No Stop",
+    "logline": "Four strangers on a night train stalled in a snowbound valley realize one of them stole a locked case, and the train will not move until it is returned.",
+    "genre": "mystery thriller",
+    "rating": "PG-13",
+    "target_runtime_min": 8,
+    "beat_seconds": 120,
+    "lock_seconds_before_end": 50
+  },
+  "world": {
+    "place": "A single sleeper car of an overnight train, stopped in a snowbound mountain valley",
+    "time": "Present day, 2 a.m., one night",
+    "tone": [
+      "tense",
+      "wry",
+      "claustrophobic",
+      "intimate"
+    ],
+    "rules": [
+      "No phone signal and no way off the train until dawn.",
+      "The conductor speaks only over the intercom and is never seen.",
+      "Nobody has any supernatural ability."
+    ]
+  },
+  "moods": [
+    "suspicious",
+    "trusting",
+    "reckless",
+    "cautious",
+    "playful"
+  ],
+  "style": {
+    "visual_prompt": "Cinematic, 35mm film grain, muted teal and amber palette, cramped train interior",
+    "camera": "Tight medium shots, shallow depth of field, occasional low angle",
+    "lighting": "Flickering warm cabin lights against cold blue snow outside the windows",
+    "motion": "Slow push-ins, subtle handheld sway from the train rocking, snow drifting past windows",
+    "negative_prompt": "text, watermark, logos, extra limbs, cartoon, daylight, morphing faces",
+    "aspect_ratio": "16:9",
+    "clip_seconds": 6
+  },
+  "characters": [
+    {
+      "id": "mara",
+      "name": "Mara Voss",
+      "role": "protagonist",
+      "want": "Reach the city by morning for her sister's custody hearing",
+      "secret": "She saw who carried the case aboard and has said nothing",
+      "voice": {
+        "speech_style": "Direct, dry humor, short sentences, deflects with questions",
+        "description": "Woman, mid-30s, low and steady"
+      },
+      "portrait_prompt": "Woman in her 30s, dark wool coat, tired sharp eyes, hair tied back",
+      "can_die_after_beat": null
+    },
+    {
+      "id": "theo",
+      "name": "Theo Lark",
+      "role": "wildcard",
+      "want": "Keep everyone calm so nobody searches his bag",
+      "secret": "He is carrying cash he cannot explain, unrelated to the case",
+      "voice": {
+        "speech_style": "Charming, talks too much when nervous, lots of jokes",
+        "description": "Man, late 20s, quick and bright"
+      },
+      "portrait_prompt": "Young man, rumpled suit, loosened tie, easy grin that does not reach his eyes",
+      "can_die_after_beat": null
+    },
+    {
+      "id": "ines",
+      "name": "Ines Okafor",
+      "role": "ally",
+      "want": "Get the case back to its owner, who she claims is her employer",
+      "secret": "She was hired to steal the case and lost it",
+      "voice": {
+        "speech_style": "Precise, formal, never raises her voice",
+        "description": "Woman, 40s, crisp and measured"
+      },
+      "portrait_prompt": "Woman in her 40s, tailored grey coat, leather gloves, composed expression",
+      "can_die_after_beat": "beat_standoff"
+    },
+    {
+      "id": "pell",
+      "name": "Mr. Pell",
+      "role": "antagonist",
+      "want": "Leave the train with the case before dawn",
+      "secret": "He has the case hidden in the luggage rack under a false bottom",
+      "voice": {
+        "speech_style": "Soft, polite, old-fashioned phrasing, long pauses",
+        "description": "Man, 60s, gentle and slow"
+      },
+      "portrait_prompt": "Older man, neat white beard, round glasses, cardigan, reading a paperback",
+      "can_die_after_beat": "beat_standoff"
+    }
+  ],
+  "opening": {
+    "narration": "The train shudders to a stop in the dark. Snow presses against the windows. Then the intercom crackles.",
+    "lines": [
+      {
+        "speaker": "narrator",
+        "text": "Attention, sleeper car. A locked case was taken from the guard's van. This train does not move until it is returned."
+      },
+      {
+        "speaker": "theo",
+        "text": "Well. That's a great way to wake up."
+      },
+      {
+        "speaker": "ines",
+        "text": "Nobody leaves this car until we find it."
+      },
+      {
+        "speaker": "pell",
+        "text": "Perhaps we might all sit down and be civil about this."
+      },
+      {
+        "speaker": "mara",
+        "text": "Or perhaps one of us should start talking."
+      }
+    ],
+    "shots": [
+      {
+        "frame": "Exterior: a lone night train stopped in a snowbound valley, windows glowing",
+        "motion": "Slow aerial drift toward the train as snow falls",
+        "sound": "Wind, train brakes hissing, intercom crackle",
+        "line": {
+          "speaker": "narrator",
+          "text": "This train does not move until the case is returned."
+        }
+      },
+      {
+        "frame": "Four strangers in a narrow sleeper car corridor under an intercom speaker",
+        "motion": "Slow push-in as they turn to look at each other",
+        "characters": [
+          "mara",
+          "theo",
+          "ines",
+          "pell"
+        ],
+        "sound": "Cabin hum, snow ticking on glass",
+        "line": {
+          "speaker": "mara",
+          "text": "Or perhaps one of us should start talking."
+        }
+      }
+    ]
+  },
+  "beats": [
+    {
+      "id": "beat_accusations",
+      "act": 1,
+      "purpose": "Establish suspicion; everyone has a reason to look guilty",
+      "must_hit": "Each character gives an alibi, and one alibi has an obvious hole",
+      "flexible": [
+        "Whose alibi cracks first",
+        "Who the crowd points at",
+        "Whether anyone searches a bag"
+      ],
+      "max_words": 160,
+      "shots": [
+        {
+          "frame": "Four strangers seated facing each other in a cramped compartment",
+          "motion": "Camera pans slowly from face to face, each glancing away",
+          "characters": [
+            "mara",
+            "theo",
+            "ines",
+            "pell"
+          ],
+          "sound": "Low cabin hum, someone tapping a foot",
+          "line": {
+            "speaker": "theo",
+            "text": "I was asleep. Ask anyone. Well, ask nobody, they were asleep too."
+          }
+        }
+      ]
+    },
+    {
+      "id": "beat_search",
+      "act": 2,
+      "purpose": "Raise stakes; a false lead",
+      "must_hit": "Theo's bag is opened and the unexplained cash is found",
+      "flexible": [
+        "Who opens the bag",
+        "How Theo reacts",
+        "Whether the group believes him"
+      ],
+      "max_words": 160,
+      "shots": [
+        {
+          "frame": "Theo's open duffel bag on a bunk, bundles of cash inside",
+          "motion": "Bag tips, cash spills onto the floor, Theo freezes",
+          "characters": [
+            "theo"
+          ],
+          "sound": "Zipper, paper bundles hitting the floor",
+          "line": {
+            "speaker": "theo",
+            "text": "That is not what it looks like."
+          }
+        }
+      ]
+    },
+    {
+      "id": "beat_reveal",
+      "act": 2,
+      "purpose": "Midpoint twist",
+      "must_hit": "Mara admits she saw who carried the case aboard, but not who took it after",
+      "flexible": [
+        "Who Mara tells first",
+        "Whether Ines's cover slips",
+        "Whom the group now distrusts"
+      ],
+      "max_words": 160,
+      "shots": [
+        {
+          "frame": "Mara standing alone by a frosted window, the others behind her",
+          "motion": "Slow push-in on Mara as she turns to face them",
+          "characters": [
+            "mara"
+          ],
+          "sound": "Wind against the window",
+          "line": {
+            "speaker": "mara",
+            "text": "I saw who carried that case aboard."
+          }
+        }
+      ]
+    },
+    {
+      "id": "beat_standoff",
+      "act": 3,
+      "purpose": "Confrontation; the case is found",
+      "must_hit": "The case is found in the luggage rack and two people claim it",
+      "flexible": [
+        "Who finds it",
+        "Who sides with whom",
+        "Whether anyone tries to run"
+      ],
+      "max_words": 180,
+      "shots": [
+        {
+          "frame": "A suitcase pulled from the luggage rack, false bottom open, a locked case inside",
+          "motion": "Two pairs of hands reach for the case at once",
+          "characters": [
+            "ines",
+            "pell"
+          ],
+          "sound": "Latch clicking open, sharp breath",
+          "line": {
+            "speaker": "pell",
+            "text": "I believe that belongs to me."
+          }
+        }
+      ]
+    },
+    {
+      "id": "beat_resolution",
+      "act": 3,
+      "purpose": "Land the chosen ending",
+      "must_hit": "The train starts moving again",
+      "flexible": [
+        "Which ending plays",
+        "Final line of each character"
+      ],
+      "max_words": 180,
+      "shots": [
+        {
+          "frame": "The night train pulling out of the snowy valley at dawn",
+          "motion": "Wheels start turning, the train slides out of frame, snow swirls behind",
+          "sound": "Engine rumble building, wheels on rails"
+        }
+      ]
+    }
+  ],
+  "endings": [
+    {
+      "id": "ending_justice",
+      "name": "Fair Trade",
+      "summary": "The group exposes Pell, Ines confesses, and the case goes back to the guard. Mara makes her hearing.",
+      "trigger_moods": [
+        "trusting",
+        "cautious"
+      ],
+      "required_flags": [
+        "mara_told_truth"
+      ],
+      "shots": [
+        {
+          "frame": "Mara stepping off the train onto a sunlit city platform",
+          "motion": "She exhales and walks out of frame",
+          "characters": [
+            "mara"
+          ],
+          "sound": "Station bustle, distant announcement",
+          "line": {
+            "speaker": "mara",
+            "text": "Right on time."
+          }
+        }
+      ]
+    },
+    {
+      "id": "ending_heist",
+      "name": "Everybody Gets a Cut",
+      "summary": "Theo talks the group into splitting what is inside. The train moves, and nobody will ever speak of it.",
+      "trigger_moods": [
+        "reckless",
+        "playful"
+      ],
+      "required_flags": [
+        "cash_found"
+      ],
+      "shots": [
+        {
+          "frame": "Three passengers around an open case, faces lit gold",
+          "motion": "Slow push-in as they look at each other and grin",
+          "characters": [
+            "mara",
+            "theo",
+            "ines"
+          ],
+          "sound": "Train rhythm, a quiet laugh",
+          "line": {
+            "speaker": "theo",
+            "text": "Nobody saw anything. Agreed?"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ending_betrayal",
+      "name": "Into the Snow",
+      "summary": "Pell slips off the train with the case, and the group turns on Ines as the train leaves without him.",
+      "trigger_moods": [
+        "suspicious"
+      ],
+      "required_flags": [],
+      "shots": [
+        {
+          "frame": "Pell walking alone into the snow with the case, train pulling away behind him",
+          "motion": "Camera holds as he grows smaller",
+          "characters": [
+            "pell"
+          ],
+          "sound": "Wind, fading train horn",
+          "line": {
+            "speaker": "pell",
+            "text": "Safe travels, everyone."
+          }
+        }
+      ]
+    }
+  ],
+  "forbidden": [
+    {
+      "act": 1,
+      "actions": [
+        "Anyone dies or is seriously hurt",
+        "The case is found",
+        "Anyone leaves the train"
+      ]
+    },
+    {
+      "act": 2,
+      "actions": [
+        "Mara dies",
+        "The case is opened",
+        "The conductor appears in person"
+      ]
+    },
+    {
+      "act": 3,
+      "actions": [
+        "Mara dies",
+        "The conductor appears in person",
+        "A new character is introduced"
+      ]
+    }
+  ],
+  "state_seed": {
+    "location": "Sleeper car corridor",
+    "mood": "suspicious",
+    "flags": {
+      "cash_found": false,
+      "mara_told_truth": false,
+      "ines_exposed": false,
+      "case_found": false
+    },
+    "clues": [
+      {
+        "id": "wet_boots",
+        "text": "Someone's boots are wet with melted snow",
+        "revealed": false
+      },
+      {
+        "id": "torn_ticket",
+        "text": "A torn ticket stub for a different car",
+        "revealed": false
+      },
+      {
+        "id": "false_bottom",
+        "text": "A suitcase in the rack sits oddly high",
+        "revealed": false
+      }
+    ],
+    "relationships": [
+      {
+        "a": "mara",
+        "b": "theo",
+        "trust": 0.2
+      },
+      {
+        "a": "mara",
+        "b": "ines",
+        "trust": 0.0
+      },
+      {
+        "a": "mara",
+        "b": "pell",
+        "trust": 0.3
+      },
+      {
+        "a": "ines",
+        "b": "pell",
+        "trust": -0.2
+      },
+      {
+        "a": "theo",
+        "b": "ines",
+        "trust": -0.1
+      }
+    ]
+  },
+  "bridges": [
+    {
+      "narration": "Wind rattles the windows. Somewhere down the train, a door bangs shut.",
+      "shot": {
+        "frame": "Snow blowing past a dark train window, cabin light reflected in the glass",
+        "motion": "Snow streaks past, the reflection flickers"
+      }
+    },
+    {
+      "narration": "The cabin lights flicker, and for a moment everyone is only a silhouette.",
+      "shot": {
+        "frame": "Four silhouettes in a dim train corridor",
+        "motion": "Cabin lights flicker off and on"
+      }
+    },
+    {
+      "narration": "The intercom hums, as if someone is about to speak, then goes quiet again.",
+      "shot": {
+        "frame": "Close-up of an old intercom speaker grille with a faint red light",
+        "motion": "Very slow push-in, the red light pulses once"
+      }
+    }
+  ],
+  "audience_hooks": {
+    "phone_prompt": "Who do you trust, and what should they do next?",
+    "seed_suggestions": [
+      "Search Pell's luggage",
+      "Mara should tell everyone what she saw",
+      "Don't trust Ines",
+      "Theo is hiding something"
+    ]
+  }
+}
