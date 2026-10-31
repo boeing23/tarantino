@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en" data-theme="night">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Steer the story</title>
+<link rel="stylesheet" href="/static/vendor/daisyui.css">
+<link rel="stylesheet" href="/static/vendor/daisyui-themes.css">
+<script src="/static/vendor/tailwind.js"></script>
+<script src="/static/live.js"></script>
+<script>
+function audience() {
+  return {
+    ...countdown(),
+    show: { title: "Steer the story", moods: [], phone_prompt: "What should happen next?", seed_suggestions: [] },
+    status: "connecting",
+    beat: null,
+    windowState: null,
+    chosen: null,
+    myMood: null,
+    text: "",
+    pending: [],
+    feed: [],
+    toast: null,
+    conn: null,
+    async init() {
+      this.tick();
+      this.conn = live("audience", {
+        status: (s) => (this.status = s),
+        beat: (b) => (this.beat = b),
+        window: (w) => {
+          this.windowState = w.state;
+          if (w.state === "open") { this.start(w.locks_in_s); this.myMood = null; }
+        },
+        intent: (i) => (this.chosen = i),
+        whisper: (w) => {
+          const i = this.pending.indexOf(w.text);
+          if (i >= 0) this.pending.splice(i, 1);
+          this.feed = [{ id: crypto.randomUUID(), text: w.text, mine: i >= 0 }, ...this.feed].slice(0, 30);
+        },
+        reset: () => Object.assign(this, { beat: null, windowState: null, chosen: null, feed: [], myMood: null }),
+        ack: () => this.notify("Sent to the story", "success"),
+        error: (e) => this.notify(e.message, "error"),
+      });
+      try { this.show = await (await fetch("/show")).json(); document.title = this.show.title; } catch {}
+    },
+    submit() {
+      const text = this.text.trim();
+      if (!text) return;
+      if (!this.conn.send("comment", { text })) return this.notify("Not connected yet", "warning");
+      this.pending.push(text);
+      this.text = "";
+    },
+    vote(mood) {
+      if (this.myMood || !this.conn.send("mood", { mood })) return;
+      this.myMood = mood;
+    },
+    notify(message, kind) {
+      this.toast = { message, kind };
+      clearTimeout(this._t);
+      this._t = setTimeout(() => (this.toast = null), 2000);
+    },
+  };
+}
+</script>
+<script defer src="/static/vendor/alpine.js"></script>
+</head>
+<body class="min-h-dvh bg-base-200">
+<main x-data="audience()" class="mx-auto flex min-h-dvh max-w-xl flex-col gap-4 p-4 sm:p-8">
+  <header class="flex items-center justify-between gap-2">
+    <h1 class="text-xl font-bold tracking-tight" x-text="show.title"></h1>
+    <span class="badge shrink-0" :class="status === 'live' ? 'badge-success' : 'badge-warning'" x-text="status"></span>
+  </header>
+
+  <section class="card bg-base-100 shadow-xl">
+    <div class="card-body gap-3">
+      <template x-if="!beat"><p class="opacity-60">Waiting for the story to begin…</p></template>
+      <template x-if="beat">
+        <div class="flex flex-col gap-2">
+          <p class="leading-relaxed opacity-80" x-text="beat.text"></p>
+          <template x-for="(l, i) in beat.lines" :key="i">
+            <p><span class="badge badge-primary badge-outline badge-sm mr-1" x-text="show.characters?.[l.speaker] ?? l.speaker"></span><span x-text="l.text"></span></p>
+          </template>
+        </div>
+      </template>
+    </div>
+  </section>
+
+  <section class="card bg-base-100 shadow-xl">
+    <form class="card-body gap-3" @submit.prevent="submit">
+      <div class="flex items-center justify-between text-sm">
+        <span x-show="windowState === 'open'" class="text-success">Listening · <span x-text="remaining()"></span>s</span>
+        <span x-show="windowState === 'locked'" class="text-warning">Deciding… next round soon</span>
+        <span x-show="!windowState" class="opacity-60">Suggestions open when the story starts</span>
+        <span class="opacity-50" x-text="`${text.length}/280`"></span>
+      </div>
+      <div class="h-2 w-full overflow-hidden rounded-full bg-base-300"><div class="h-full rounded-full bg-success transition-[width] duration-300" :style="`width:${windowState === 'open' ? progress() : 0}%`"></div></div>
+
+      <template x-if="show.moods.length">
+        <div class="flex flex-col gap-2">
+          <span class="text-sm opacity-70">How does the room feel?</span>
+          <div class="flex flex-wrap gap-2">
+            <template x-for="m in show.moods" :key="m">
+              <button type="button" class="btn btn-sm capitalize" :class="myMood === m ? 'btn-secondary' : 'btn-outline'"
+                :disabled="(myMood && myMood !== m) || status !== 'live'" @click="vote(m)" x-text="m"></button>
+            </template>
+          </div>
+        </div>
+      </template>
+
+      <textarea class="textarea textarea-lg w-full" rows="3" maxlength="280" x-model="text"
+        :placeholder="show.phone_prompt" @keydown.enter.prevent="submit"></textarea>
+      <div class="flex flex-wrap gap-2" x-show="!text">
+        <template x-for="s in show.seed_suggestions" :key="s">
+          <button type="button" class="badge badge-ghost badge-lg h-auto py-1 text-left" @click="text = s" x-text="s"></button>
+        </template>
+      </div>
+      <button class="btn btn-primary btn-lg w-full" :disabled="!text.trim() || status !== 'live'">Send suggestion</button>
+    </form>
+  </section>
+
+  <section class="card bg-base-100 shadow-xl" x-show="chosen" x-transition>
+    <div class="card-body gap-2">
+      <h2 class="card-title text-base opacity-70">The room chose</h2>
+      <p class="text-lg font-semibold text-primary" x-text="chosen?.intent ?? 'No suggestions last round'"></p>
+      <p class="text-sm capitalize opacity-70" x-show="chosen?.mood">Mood: <span x-text="chosen?.mood"></span></p>
+      <template x-for="s in (chosen?.top_suggestions ?? []).slice(1)" :key="s.text">
+        <p class="text-sm opacity-60"><span x-text="s.text"></span> · <span x-text="s.votes"></span></p>
+      </template>
+    </div>
+  </section>
+
+  <section class="card bg-base-100 shadow-xl">
+    <div class="card-body gap-2">
+      <h2 class="card-title text-base opacity-70">Live comments</h2>
+      <p x-show="!feed.length" class="text-sm opacity-50">No comments yet. Be the first!</p>
+      <ul class="flex max-h-80 flex-col gap-1 overflow-y-auto">
+        <template x-for="w in feed" :key="w.id">
+          <li class="chat" :class="w.mine ? 'chat-end' : 'chat-start'">
+            <div class="chat-header text-xs opacity-50" x-show="w.mine">you</div>
+            <div class="chat-bubble text-sm" :class="w.mine ? 'chat-bubble-primary' : ''" x-text="w.text"></div>
+          </li>
+        </template>
+      </ul>
+    </div>
+  </section>
+
+  <div class="toast toast-top toast-center" x-show="toast" x-transition>
+    <div class="alert" :class="`alert-${toast?.kind}`"><span x-text="toast?.message"></span></div>
+  </div>
+</main>
+</body>
+</html>

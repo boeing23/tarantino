@@ -1,0 +1,43 @@
+services:
+  server:
+    restart: unless-stopped
+    build: .
+    image: tarantino-server
+    ports:
+      - "${PORT:-8000}:8000"
+    environment:
+      LOCK_LEAD_S: ${LOCK_LEAD_S:-}
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-}
+      BLOCKLIST: ${BLOCKLIST:-}
+      PUBLIC_URL: ${PUBLIC_URL:-}
+      LAN_URL: ${LAN_URL:-}
+      TUNNEL_API: http://tunnel:2000/quicktunnel
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]
+      interval: 2s
+      retries: 15
+
+  engine:
+    restart: unless-stopped
+    profiles: ["demo"]
+    image: tarantino-server
+    pull_policy: never
+    command: uv run --no-sync python -m engine
+    environment:
+      ENGINE_URL: ws://server:8000/ws/engine
+      BEAT_SECONDS: ${BEAT_SECONDS:-}
+      ENGINE_GENERATOR: ${ENGINE_GENERATOR:-}
+      FAL_KEY: ${FAL_KEY:-}
+      VIDEO_RESOLUTION: ${VIDEO_RESOLUTION:-1080p}
+    depends_on:
+      server:
+        condition: service_healthy
+
+  tunnel:
+    restart: unless-stopped
+    profiles: ["share"]
+    image: cloudflare/cloudflared:2026.10.7
+    command: tunnel --no-autoupdate --metrics 0.0.0.0:2000 --url http://server:8000
+    depends_on:
+      server:
+        condition: service_healthy

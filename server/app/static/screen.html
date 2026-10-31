@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en" data-theme="night">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tarantino</title>
+<link rel="stylesheet" href="/static/vendor/daisyui.css">
+<link rel="stylesheet" href="/static/vendor/daisyui-themes.css">
+<script src="/static/vendor/tailwind.js"></script>
+<script src="/static/live.js"></script>
+<script>
+function screen() {
+  return {
+    ...countdown(),
+    show: { title: "" },
+    status: "connecting",
+    beat: null,
+    beatStartedAt: 0,
+    clip: 0,
+    windowState: null,
+    chosen: null,
+    feed: [],
+    joinUrl: "",
+    soundOn: false,
+    async init() {
+      this.tick();
+      this.refreshJoin();
+      setInterval(() => this.refreshJoin(), 5000);
+      live("screen", {
+        status: (s) => (this.status = s),
+        beat: (b) => this.play(b),
+        window: (w) => {
+          this.windowState = w.state;
+          if (w.state === "open") this.start(w.locks_in_s);
+        },
+        whisper: (w) => (this.feed = [{ id: crypto.randomUUID(), text: w.text }, ...this.feed].slice(0, 12)),
+        intent: (i) => (this.chosen = i),
+        reset: () => Object.assign(this, { beat: null, windowState: null, chosen: null, feed: [] }),
+      });
+      try { this.show = await (await fetch("/show")).json(); document.title = this.show.title; } catch {}
+    },
+    play(b) {
+      this.beat = b;
+      this.beatStartedAt = Date.now();
+      this.clip = 0;
+      const audio = this.$refs.audio;
+      if (b.audio_url) { audio.src = b.audio_url; audio.play().catch(() => {}); }
+    },
+    nextClip() {
+      if (this.beat?.video_urls?.length) this.clip = (this.clip + 1) % this.beat.video_urls.length;
+    },
+    currentLine() {
+      const lines = this.beat?.lines ?? [];
+      if (!lines.length) return null;
+      const per = (this.beat.duration_s * 1000) / lines.length;
+      const i = Math.floor(Math.max(0, this.now - this.beatStartedAt) / per);
+      return lines[Math.min(lines.length - 1, i)];
+    },
+    async refreshJoin() {
+      try { this.joinUrl = (await (await fetch("/join")).json()).url; } catch {}
+    },
+    get totalVotes() { return (this.chosen?.top_suggestions ?? []).reduce((n, s) => n + s.votes, 0) || 1; },
+  };
+}
+</script>
+<script defer src="/static/vendor/alpine.js"></script>
+</head>
+<body class="bg-black">
+<main x-data="screen()" class="grid min-h-dvh grid-cols-1 lg:h-dvh lg:grid-cols-[1fr_22rem]">
+  <section class="relative min-h-[60dvh] overflow-hidden bg-cover bg-center"
+    :style="beat?.image_url ? `background-image:url('${beat.image_url}')` : ''">
+    <video class="absolute inset-0 h-full w-full object-cover" autoplay muted playsinline
+      x-show="beat?.video_urls?.length" :src="beat?.video_urls?.[clip] ?? ''" @ended="nextClip()"
+      :loop="beat?.video_urls?.length === 1"
+      x-effect="$el.muted = !soundOn; if (beat?.video_urls?.[clip]) $el.play().catch(() => {})"></video>
+    <header class="absolute inset-x-0 top-0 flex items-center justify-between gap-4 px-6 py-4 lg:px-12">
+      <h1 class="truncate text-sm uppercase tracking-[0.3em] text-white/60" x-text="show.title"></h1>
+      <div class="flex shrink-0 gap-2">
+        <button class="btn btn-xs btn-ghost text-white/70" x-show="!soundOn" @click="soundOn = true">Enable sound</button>
+        <span class="badge" :class="status === 'live' ? 'badge-success' : 'badge-warning'" x-text="status"></span>
+      </div>
+    </header>
+    <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/80 to-transparent p-6 pt-24 lg:p-12 lg:pt-32">
+      <template x-if="beat">
+        <div class="flex flex-col gap-3">
+          <p class="text-lg text-white/70 lg:text-xl" x-text="beat.text"></p>
+          <template x-if="currentLine()">
+            <div>
+              <div class="badge badge-primary badge-lg mb-2" x-text="show.characters?.[currentLine().speaker] ?? currentLine().speaker"></div>
+              <p class="text-2xl leading-snug text-white lg:text-4xl" x-text="currentLine().text"></p>
+            </div>
+          </template>
+        </div>
+      </template>
+      <p x-show="!beat" class="text-2xl text-white/60">The story is about to begin…</p>
+    </div>
+  </section>
+
+  <aside class="flex flex-col gap-4 overflow-hidden bg-base-200 p-4">
+    <div class="card bg-base-100">
+      <div class="card-body items-center p-4 text-center">
+        <img class="w-48 rounded-lg bg-white p-1" :src="joinUrl && `/qr.svg?u=${encodeURIComponent(joinUrl)}`" alt="Scan to join">
+        <p class="text-sm font-semibold">Scan to steer the story</p>
+        <p class="break-all text-xs opacity-60" x-text="joinUrl"></p>
+      </div>
+    </div>
+
+    <div class="card bg-base-100">
+      <div class="card-body gap-2 p-4">
+        <div class="flex justify-between text-sm">
+          <span x-show="windowState === 'open'" class="text-success">Listening</span>
+          <span x-show="windowState === 'locked'" class="text-warning">Deciding…</span>
+          <span x-show="!windowState" class="opacity-60">Waiting</span>
+          <span x-show="windowState === 'open'" x-text="`${remaining()}s`"></span>
+        </div>
+        <div class="h-2 w-full overflow-hidden rounded-full bg-base-300"><div class="h-full rounded-full bg-success transition-[width] duration-300" :style="`width:${windowState === 'open' ? progress() : 0}%`"></div></div>
+      </div>
+    </div>
+
+    <div class="card bg-base-100" x-show="chosen" x-transition>
+      <div class="card-body gap-3 p-4">
+        <h2 class="text-xs uppercase tracking-widest opacity-60">Audience chose</h2>
+        <p class="text-lg font-semibold text-primary" x-text="chosen?.intent ?? 'No suggestions this round'"></p>
+        <span class="badge badge-secondary capitalize" x-show="chosen?.mood" x-text="chosen?.mood"></span>
+        <template x-for="s in chosen?.top_suggestions ?? []" :key="s.text">
+          <div>
+            <div class="flex justify-between text-sm"><span x-text="s.text"></span><span x-text="s.votes"></span></div>
+            <div class="h-2 w-full overflow-hidden rounded-full bg-base-300"><div class="h-full rounded-full bg-primary transition-[width] duration-300" :style="`width:${s.votes / totalVotes * 100}%`"></div></div>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <div class="card min-h-0 flex-1 bg-base-100">
+      <div class="card-body min-h-0 gap-2 p-4">
+        <h2 class="text-xs uppercase tracking-widest opacity-60">Live whispers</h2>
+        <ul class="flex flex-col gap-2 overflow-hidden">
+          <template x-for="w in feed" :key="w.id">
+            <li class="chat chat-start" x-transition><div class="chat-bubble chat-bubble-neutral text-sm" x-text="w.text"></div></li>
+          </template>
+        </ul>
+      </div>
+    </div>
+  </aside>
+  <audio x-ref="audio"></audio>
+</main>
+</body>
+</html>
