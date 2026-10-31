@@ -33,3 +33,14 @@ def test_audience_page_is_mobile_ready(client):
 def test_pages_load_bible_and_handle_reset(client, path):
     html = client.get(path).text
     assert 'fetch("/show")' in html and "reset:" in html
+
+
+def test_screen_video_starts_muted_so_autoplay_is_allowed(client):
+    html = client.get("/screen").text
+    video = html[html.index("<video"):html.index("</video>")]
+    assert " muted " in video and "$el.muted = !soundOn" in video and "$el.play()" in video
+
+
+@pytest.mark.parametrize("path", ["/", "/screen", "/static/live.js"])
+def test_pages_are_revalidated_so_updates_reach_browsers(client, path):
+    assert client.get(path).headers["cache-control"] == "no-cache"

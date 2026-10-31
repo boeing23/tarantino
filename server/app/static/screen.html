@@ -69,10 +69,10 @@ function screen() {
 <main x-data="screen()" class="grid min-h-dvh grid-cols-1 lg:h-dvh lg:grid-cols-[1fr_22rem]">
   <section class="relative min-h-[60dvh] overflow-hidden bg-cover bg-center"
     :style="beat?.image_url ? `background-image:url('${beat.image_url}')` : ''">
-    <template x-if="beat?.video_urls?.length">
-      <video class="absolute inset-0 h-full w-full object-cover" autoplay playsinline :muted="!soundOn"
-        :src="beat.video_urls[clip]" @ended="nextClip()" :loop="beat.video_urls.length === 1"></video>
-    </template>
+    <video class="absolute inset-0 h-full w-full object-cover" autoplay muted playsinline
+      x-show="beat?.video_urls?.length" :src="beat?.video_urls?.[clip] ?? ''" @ended="nextClip()"
+      :loop="beat?.video_urls?.length === 1"
+      x-effect="$el.muted = !soundOn; if (beat?.video_urls?.[clip]) $el.play().catch(() => {})"></video>
     <header class="absolute inset-x-0 top-0 flex items-center justify-between gap-4 px-6 py-4 lg:px-12">
       <h1 class="truncate text-sm uppercase tracking-[0.3em] text-white/60" x-text="show.title"></h1>
       <div class="flex shrink-0 gap-2">

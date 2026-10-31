@@ -26,7 +26,9 @@ services:
     environment:
       ENGINE_URL: ws://server:8000/ws/engine
       BEAT_SECONDS: ${BEAT_SECONDS:-}
-      ENGINE_GENERATOR: ${ENGINE_GENERATOR:-engine.generate:scripted}
+      ENGINE_GENERATOR: ${ENGINE_GENERATOR:-}
+      FAL_KEY: ${FAL_KEY:-}
+      VIDEO_RESOLUTION: ${VIDEO_RESOLUTION:-1080p}
     depends_on:
       server:
         condition: service_healthy

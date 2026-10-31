@@ -30,6 +30,8 @@ async def serve(ws, story: Story, generate: Generator) -> None:
 
 
 async def run(url: str, story: Story, generate: Generator) -> None:
+    if hasattr(generate, "prepare"):
+        await generate.prepare(story)
     while True:
         try:
             async with websockets.connect(url) as ws:

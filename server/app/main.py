@@ -24,6 +24,14 @@ from app.show import Show
 from app.window import CommentWindow
 
 STATIC = Path(__file__).parent / "static"
+NO_CACHE = {"Cache-Control": "no-cache"}
+
+
+class RevalidatedStatic(StaticFiles):
+    def file_response(self, *args, **kwargs):
+        response = super().file_response(*args, **kwargs)
+        response.headers.update(NO_CACHE)
+        return response
 ALLOWED = {"audience": {"comment", "mood"}, "engine": {"beat"}, "screen": set()}
 
 
@@ -46,9 +54,10 @@ def create_app(settings: Settings | None = None, aggregate: Aggregator = naive_a
         show.stop()
         emit("server.stop")
 
+    version = uuid.uuid4().hex[:8]
     app = FastAPI(title="tarantino", lifespan=lifespan)
     app.add_middleware(GZipMiddleware, minimum_size=1024)
-    app.mount("/static", StaticFiles(directory=STATIC), name="static")
+    app.mount("/static", RevalidatedStatic(directory=STATIC), name="static")
 
     def blocked(text: str) -> bool:
         low = text.lower()
@@ -84,15 +93,15 @@ def create_app(settings: Settings | None = None, aggregate: Aggregator = naive_a
 
     @app.get("/healthz")
     def healthz():
-        return {"ok": True}
+        return {"ok": True, "version": version}
 
     @app.get("/")
     def audience():
-        return FileResponse(STATIC / "audience.html")
+        return FileResponse(STATIC / "audience.html", headers=NO_CACHE)
 
     @app.get("/screen")
     def screen():
-        return FileResponse(STATIC / "screen.html")
+        return FileResponse(STATIC / "screen.html", headers=NO_CACHE)
 
     @app.get("/show")
     def show_info():
@@ -113,7 +122,7 @@ def create_app(settings: Settings | None = None, aggregate: Aggregator = naive_a
         if settings.admin_token and token != settings.admin_token:
             raise HTTPException(403)
         await show.reset()
-        return {"ok": True}
+        return {"ok": True, "version": version}
 
     @app.get("/metrics")
     def get_metrics():

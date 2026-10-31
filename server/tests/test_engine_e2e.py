@@ -54,3 +54,32 @@ def test_engine_drives_full_show_from_bible(settings):
         server.should_exit = True
     assert [b["bible_beat_id"] for b in beats[:-1]] == expected
     assert beats[-1]["ending_id"] in {e["id"] for e in bible["endings"]}
+
+
+def test_runner_calls_prepare_before_show(settings):
+    bible = load_bible()
+    server, port = serve(settings)
+
+    class Prepared:
+        prepared = 0
+
+        async def prepare(self, story):
+            self.prepared += 1
+
+        async def __call__(self, story, intent):
+            return await scripted(story, intent)
+
+    gen = Prepared()
+
+    async def scenario():
+        engine = asyncio.create_task(run(f"ws://127.0.0.1:{port}/ws/engine", Story(bible, beat_seconds=0.3), gen))
+        async with websockets.connect(f"ws://127.0.0.1:{port}/ws/screen") as screen:
+            while json.loads(await asyncio.wait_for(screen.recv(), 5))["type"] != "beat":
+                pass
+        engine.cancel()
+
+    try:
+        asyncio.run(scenario())
+    finally:
+        server.should_exit = True
+    assert gen.prepared == 1

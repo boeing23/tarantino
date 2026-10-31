@@ -30,6 +30,12 @@ async def scripted(story: Story, intent: AudienceIntent) -> Beat:
     return Beat(**common, text=text, speaker=speaker, lines=lines, bible_beat_id=spec["id"])
 
 
+def choose_generator(env) -> str:
+    if env.get("ENGINE_GENERATOR"):
+        return env["ENGINE_GENERATOR"]
+    return "engine.video:generate" if env.get("FAL_KEY") else "engine.generate:scripted"
+
+
 def load_generator(path: str) -> Generator:
     module, _, attr = path.partition(":")
     return getattr(importlib.import_module(module), attr)

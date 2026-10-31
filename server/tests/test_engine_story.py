@@ -86,3 +86,14 @@ def test_scripted_ending_is_marked(bible):
 
 def test_load_generator_from_dotted_path():
     assert load_generator("engine.generate:scripted") is scripted
+
+
+@pytest.mark.parametrize("env,expected", [
+    ({"FAL_KEY": "k"}, "engine.video:generate"),
+    ({}, "engine.generate:scripted"),
+    ({"FAL_KEY": "k", "ENGINE_GENERATOR": "engine.generate:scripted"}, "engine.generate:scripted"),
+    ({"ENGINE_GENERATOR": ""}, "engine.generate:scripted"),
+])
+def test_generator_defaults_to_video_when_fal_key_present(env, expected):
+    from engine.generate import choose_generator
+    assert choose_generator(env) == expected

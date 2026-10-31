@@ -17,3 +17,4 @@ def emit(event: str, **fields) -> None:
 
 def setup() -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s", datefmt="%H:%M:%S")
+    logging.getLogger("httpx").setLevel(logging.WARNING)

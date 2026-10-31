@@ -5,6 +5,7 @@ Run everything from this folder. Only Docker is required.
 | Command | What it does |
 |---|---|
 | `make demo` | Server + story engine in Docker, playing `story/bible.json` with real timings |
+| `make smoke` | Render one fal.ai clip to check the key (paid) |
 | `make quick` | Same with 30s beats / 10s lock, for rehearsing |
 | `make reset` | Restart the show from the opening |
 | `make share` | Same as demo + a public https tunnel, so the QR works from any phone on any network |

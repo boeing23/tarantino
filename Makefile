@@ -1,4 +1,4 @@
-.PHONY: help up demo share quick down dev engine reset test logs
+.PHONY: help up demo share quick down dev engine reset smoke test logs
 
 LAN_IP := $(shell ipconfig getifaddr en0 2>/dev/null || hostname -I 2>/dev/null | cut -d' ' -f1)
 export LAN_URL ?= http://$(LAN_IP):8000
@@ -6,6 +6,7 @@ export LAN_URL ?= http://$(LAN_IP):8000
 help:
 	@echo "make demo   server + story engine in Docker (same-wifi QR)"
 	@echo "make share  demo + public https tunnel (QR works from any phone)"
+	@echo "make smoke  render one fal.ai clip to check the key and models (paid)"
 	@echo "make quick  demo with 30s beats / 10s lock for rehearsing"
 	@echo "make reset  restart the show from the opening"
 	@echo "make up     server only in Docker"
@@ -17,16 +18,21 @@ help:
 	@echo "wifi URL: $(LAN_URL)"
 
 up:
-	docker compose up --build
+	docker compose build && docker compose up
 
 demo:
-	docker compose --profile demo up --build
+	docker compose --profile demo build && docker compose --profile demo up
 
 share:
-	docker compose --profile demo --profile share up --build
+	docker compose --profile demo --profile share build && docker compose --profile demo --profile share up
 
+smoke:
+	cd server && uv run python -m engine.smoke
+
+quick: export BEAT_SECONDS=30
+quick: export LOCK_LEAD_S=10
 quick:
-	BEAT_SECONDS=30 LOCK_LEAD_S=10 docker compose --profile demo up --build
+	docker compose --profile demo build && docker compose --profile demo up
 
 reset:
 	curl -s -X POST "localhost:8000/admin/reset?token=$${ADMIN_TOKEN}"; echo

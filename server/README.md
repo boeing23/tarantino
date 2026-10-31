@@ -59,3 +59,12 @@ ENGINE_GENERATOR=mypackage.llm:generate make demo
 Generation starts the moment the window locks (`lock_seconds_before_end` before the beat ends), so that is the time budget for beat N+1. A generator that raises is logged as `engine.generate_failed` and the show waits for the next window.
 
 `POST /admin/reset` (`make reset`) restarts the show from the opening; set `ADMIN_TOKEN` and pass `?token=` when hosted.
+
+## Video (`engine.video:generate`, fal.ai)
+
+Video is on automatically whenever `FAL_KEY` is in the repo-root `.env` (every `make demo`/`share`/`quick` then spends fal.ai credits; force text-only with `ENGINE_GENERATOR=engine.generate:scripted`). `make smoke` renders one clip to check the key. Compose passes the key to the engine; it is never baked into the image.
+
+- Each bible shot → FLUX schnell keyframe → LTX-2.3 Fast image-to-video with native audio (6 s, 1080p, 16:9), all shots of a beat in parallel. Clip URLs go into `Beat.video_urls`; the screen plays them back to back.
+- The opening and endings don't depend on the crowd, so they pre-render when the engine starts; beat 1 plays as soon as they're done.
+- Measured: 32–50 s per clip (keyframe included). The beat must render inside `lock_seconds_before_end`; if it's late the screen holds the last clip until it arrives. LTX-2.3 Fast has no resolution below 1080p.
+- Override models with `IMAGE_ENDPOINT` / `VIDEO_ENDPOINT`.

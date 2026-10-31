@@ -4,3 +4,4 @@
 server/tests
 spike
 .git
+.env

@@ -1,3 +1,13 @@
+let serverVersion;
+
+async function reloadIfServerChanged() {
+  try {
+    const { version } = await (await fetch("/healthz", { cache: "no-store" })).json();
+    if (serverVersion && version !== serverVersion) location.reload();
+    serverVersion = version;
+  } catch {}
+}
+
 function live(role, handlers) {
   const proto = location.protocol === "https:" ? "wss" : "ws";
   let ws;
@@ -5,7 +15,7 @@ function live(role, handlers) {
   const connect = () => {
     handlers.status?.("connecting");
     ws = new WebSocket(`${proto}://${location.host}/ws/${role}`);
-    ws.onopen = () => { delay = 500; handlers.status?.("live"); };
+    ws.onopen = () => { delay = 500; handlers.status?.("live"); reloadIfServerChanged(); };
     ws.onclose = () => {
       handlers.status?.("reconnecting");
       setTimeout(connect, delay);
