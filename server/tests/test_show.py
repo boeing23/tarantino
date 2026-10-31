@@ -66,3 +66,35 @@ def test_ending_beat_opens_no_window(client):
         engine.send_json(beat("after"))
         assert screen.receive_json()["data"]["beat_id"] == "end"
         assert screen.receive_json()["data"]["beat_id"] == "after"
+
+
+def test_audience_sees_what_the_room_chose(client):
+    with client.websocket_connect("/ws/engine") as engine, client.websocket_connect("/ws/audience") as phone:
+        recv_until(engine, "intent")
+        phone.send_json(comment("open the door"))
+        recv_until(phone, "ack")
+        engine.send_json(beat("b1"))
+        assert recv_until(phone, "intent")["data"]["intent"] == "open the door"
+
+
+def test_late_joiner_gets_current_state(client):
+    with client.websocket_connect("/ws/engine") as engine, client.websocket_connect("/ws/audience") as phone:
+        recv_until(engine, "intent")
+        phone.send_json(comment("open the door"))
+        recv_until(phone, "ack")
+        engine.send_json(beat("b1", duration_s=0.2))
+        recv_until(engine, "intent")
+        engine.send_json(beat("b2", duration_s=5))
+        recv_until(phone, "beat")
+        recv_until(phone, "beat")
+        with client.websocket_connect("/ws/screen") as screen:
+            got = {m["type"]: m["data"] for m in (screen.receive_json() for _ in range(3))}
+    assert got["beat"]["beat_id"] == "b2"
+    assert got["window"]["state"] == "open" and 0 < got["window"]["locks_in_s"] <= 5
+    assert got["intent"]["intent"] == "open the door"
+
+
+def test_fresh_joiner_gets_nothing_before_show_starts(client):
+    with client.websocket_connect("/ws/screen") as screen, client.websocket_connect("/ws/audience") as phone:
+        phone.send_json(comment("hi"))
+        assert recv_until(screen, "whisper", limit=1)

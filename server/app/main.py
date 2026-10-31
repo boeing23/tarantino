@@ -7,7 +7,9 @@ from pathlib import Path
 
 import segno
 from fastapi import FastAPI, Request, Response, WebSocket, WebSocketDisconnect
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
 
 from app import events
@@ -43,6 +45,8 @@ def create_app(settings: Settings | None = None, aggregate: Aggregator = naive_a
         emit("server.stop")
 
     app = FastAPI(title="tarantino", lifespan=lifespan)
+    app.add_middleware(GZipMiddleware, minimum_size=1024)
+    app.mount("/static", StaticFiles(directory=STATIC), name="static")
 
     def blocked(text: str) -> bool:
         low = text.lower()
@@ -61,7 +65,7 @@ def create_app(settings: Settings | None = None, aggregate: Aggregator = naive_a
         metrics.comments_total += 1
         emit("comment.accepted", id=cid, window_id=wid, text=c.text)
         await ws.send_json(envelope("ack", Ack(window_id=wid)))
-        await hub.send(("screen",), envelope("whisper", Whisper(window_id=wid, text=c.text)))
+        await show.whisper(Whisper(window_id=wid, text=c.text))
 
     @app.get("/healthz")
     def healthz():
@@ -102,6 +106,9 @@ def create_app(settings: Settings | None = None, aggregate: Aggregator = naive_a
         emit("ws.connect", role=role, id=cid, peer=peer, **hub.counts())
         if role == "engine":
             await show.on_engine_connect(ws)
+        else:
+            for m in show.snapshot():
+                await ws.send_json(m)
         reason = "closed"
         try:
             while True:

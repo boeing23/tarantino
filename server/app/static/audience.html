@@ -1,45 +1,124 @@
 <!doctype html>
-<html>
+<html lang="en" data-theme="night">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Whisper to the story</title>
-<style>
-  body { font-family: system-ui, sans-serif; background: #111; color: #eee; margin: 0 auto; padding: 20px; max-width: 640px; }
-  #beat { min-height: 4em; opacity: .8; }
-  form { display: flex; gap: 8px; }
-  input { flex: 1; font-size: 18px; padding: 12px; border-radius: 8px; border: 0; }
-  button { font-size: 18px; padding: 12px 16px; border-radius: 8px; border: 0; background: #e5b33b; }
-  #status { margin-top: 12px; opacity: .6; }
-</style>
-</head>
-<body>
-<p id="beat">Waiting for the story to begin…</p>
-<form id="f"><input id="t" maxlength="280" placeholder="What should happen next?" autocomplete="off"><button>Send</button></form>
-<p id="status">connecting…</p>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Steer the story</title>
+<link rel="stylesheet" href="/static/vendor/daisyui.css">
+<link rel="stylesheet" href="/static/vendor/daisyui-themes.css">
+<script src="/static/vendor/tailwind.js"></script>
+<script src="/static/live.js"></script>
 <script>
-const proto = location.protocol === "https:" ? "wss" : "ws";
-const status = document.getElementById("status");
-let ws;
-function connect() {
-  ws = new WebSocket(`${proto}://${location.host}/ws/audience`);
-  ws.onopen = () => status.textContent = "connected";
-  ws.onclose = () => { status.textContent = "reconnecting…"; setTimeout(connect, 1000); };
-  ws.onmessage = (e) => {
-    const { type, data } = JSON.parse(e.data);
-    if (type === "beat") document.getElementById("beat").textContent = `${data.speaker}: ${data.text}`;
-    if (type === "ack") status.textContent = "sent ✓";
-    if (type === "error") status.textContent = data.message;
-    if (type === "window") status.textContent = data.state === "open" ? "listening…" : "deciding…";
+function audience() {
+  return {
+    ...countdown(),
+    status: "connecting",
+    beat: null,
+    windowState: null,
+    chosen: null,
+    text: "",
+    pending: [],
+    feed: [],
+    toast: null,
+    conn: null,
+    init() {
+      this.tick();
+      this.conn = live("audience", {
+        status: (s) => (this.status = s),
+        beat: (b) => (this.beat = b),
+        window: (w) => {
+          this.windowState = w.state;
+          if (w.state === "open") this.start(w.locks_in_s);
+        },
+        intent: (i) => (this.chosen = i),
+        whisper: (w) => {
+          const i = this.pending.indexOf(w.text);
+          if (i >= 0) this.pending.splice(i, 1);
+          this.feed = [{ id: crypto.randomUUID(), text: w.text, mine: i >= 0 }, ...this.feed].slice(0, 30);
+        },
+        ack: () => this.notify("Sent to the story", "success"),
+        error: (e) => this.notify(e.message, "error"),
+      });
+    },
+    submit() {
+      const text = this.text.trim();
+      if (!text) return;
+      if (!this.conn.send("comment", { text })) return this.notify("Not connected yet", "warning");
+      this.pending.push(text);
+      this.text = "";
+    },
+    notify(message, kind) {
+      this.toast = { message, kind };
+      clearTimeout(this._t);
+      this._t = setTimeout(() => (this.toast = null), 2000);
+    },
   };
 }
-connect();
-document.getElementById("f").onsubmit = (e) => {
-  e.preventDefault();
-  const t = document.getElementById("t");
-  if (t.value.trim() && ws.readyState === 1) ws.send(JSON.stringify({ type: "comment", data: { text: t.value } }));
-  t.value = "";
-};
 </script>
+<script defer src="/static/vendor/alpine.js"></script>
+</head>
+<body class="min-h-dvh bg-base-200">
+<main x-data="audience()" class="mx-auto flex min-h-dvh max-w-xl flex-col gap-4 p-4 sm:p-8">
+  <header class="flex items-center justify-between">
+    <h1 class="text-xl font-bold tracking-tight">Steer the story</h1>
+    <span class="badge" :class="status === 'live' ? 'badge-success' : 'badge-warning'" x-text="status"></span>
+  </header>
+
+  <section class="card bg-base-100 shadow-xl">
+    <div class="card-body gap-3">
+      <template x-if="!beat"><p class="opacity-60">Waiting for the story to begin…</p></template>
+      <template x-if="beat">
+        <div>
+          <div class="badge badge-primary badge-outline mb-2" x-text="beat.speaker"></div>
+          <p class="text-lg leading-relaxed" x-text="beat.text"></p>
+        </div>
+      </template>
+    </div>
+  </section>
+
+  <section class="card bg-base-100 shadow-xl">
+    <form class="card-body gap-3" @submit.prevent="submit">
+      <div class="flex items-center justify-between text-sm">
+        <span x-show="windowState === 'open'" class="text-success">Listening · <span x-text="remaining()"></span>s</span>
+        <span x-show="windowState === 'locked'" class="text-warning">Deciding… next round soon</span>
+        <span x-show="!windowState" class="opacity-60">Suggestions open when the story starts</span>
+        <span class="opacity-50" x-text="`${text.length}/280`"></span>
+      </div>
+      <div class="h-2 w-full overflow-hidden rounded-full bg-base-300"><div class="h-full rounded-full bg-success transition-[width] duration-300" :style="`width:${windowState === 'open' ? progress() : 0}%`"></div></div>
+      <textarea class="textarea textarea-lg w-full" rows="3" maxlength="280" x-model="text"
+        placeholder="What should happen next?" @keydown.enter.prevent="submit"></textarea>
+      <button class="btn btn-primary btn-lg w-full" :disabled="!text.trim() || status !== 'live'">Send suggestion</button>
+    </form>
+  </section>
+
+  <section class="card bg-base-100 shadow-xl" x-show="chosen" x-transition>
+    <div class="card-body gap-2">
+      <h2 class="card-title text-base opacity-70">The room chose</h2>
+      <p class="text-lg font-semibold text-primary" x-text="chosen?.intent ?? 'No suggestions last round'"></p>
+      <template x-for="s in (chosen?.top_suggestions ?? []).slice(1)" :key="s.text">
+        <p class="text-sm opacity-60"><span x-text="s.text"></span> · <span x-text="s.votes"></span></p>
+      </template>
+    </div>
+  </section>
+
+  <section class="card bg-base-100 shadow-xl">
+    <div class="card-body gap-2">
+      <h2 class="card-title text-base opacity-70">Live comments</h2>
+      <p x-show="!feed.length" class="text-sm opacity-50">No comments yet. Be the first!</p>
+      <ul class="flex max-h-80 flex-col gap-1 overflow-y-auto">
+        <template x-for="w in feed" :key="w.id">
+          <li class="chat" :class="w.mine ? 'chat-end' : 'chat-start'">
+            <div class="chat-header text-xs opacity-50" x-show="w.mine">you</div>
+            <div class="chat-bubble text-sm" :class="w.mine ? 'chat-bubble-primary' : ''" x-text="w.text"></div>
+          </li>
+        </template>
+      </ul>
+    </div>
+  </section>
+
+  <div class="toast toast-top toast-center" x-show="toast" x-transition>
+    <div class="alert" :class="`alert-${toast?.kind}`"><span x-text="toast?.message"></span></div>
+  </div>
+</main>
 </body>
 </html>

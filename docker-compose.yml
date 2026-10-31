@@ -1,5 +1,6 @@
 services:
   server:
+    restart: unless-stopped
     build: ./server
     image: tarantino-server
     ports:
@@ -16,6 +17,7 @@ services:
       retries: 15
 
   engine:
+    restart: unless-stopped
     profiles: ["demo"]
     image: tarantino-server
     pull_policy: never
@@ -28,8 +30,9 @@ services:
         condition: service_healthy
 
   tunnel:
+    restart: unless-stopped
     profiles: ["share"]
-    image: cloudflare/cloudflared:latest
+    image: cloudflare/cloudflared:2026.10.7
     command: tunnel --no-autoupdate --metrics 0.0.0.0:2000 --url http://server:8000
     depends_on:
       server:

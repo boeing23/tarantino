@@ -24,3 +24,7 @@ The QR on the screen picks the first of: `PUBLIC_URL` → the tunnel URL (`make 
 If phones can't open the QR link, the venue wifi is probably blocking device-to-device traffic: use `make share`. When hosted, set `PUBLIC_URL=https://your-app.example.com`.
 
 Tune with env vars, e.g. `LOCK_LEAD_S=5 BEAT_DURATION_S=20 make demo`. See `server/README.md` for the message contract.
+
+## Tunnel limits (`make share`)
+
+Cloudflare quick tunnels are for testing: no uptime guarantee, max 200 concurrent requests (each open page holds one WebSocket), and a new random URL every time the tunnel restarts. The screen's QR refreshes itself within ~5s if the URL changes. For the real demo, deploy the Docker image to a host and set `PUBLIC_URL`; keep `make share` as the backup.

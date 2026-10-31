@@ -46,3 +46,20 @@ def test_unknown_role_rejected(client):
     with pytest.raises(WebSocketDisconnect):
         with client.websocket_connect("/ws/hacker") as ws:
             ws.receive_json()
+
+
+def test_every_audience_member_sees_all_comments(client):
+    with client.websocket_connect("/ws/audience") as alice, client.websocket_connect("/ws/audience") as bob:
+        alice.send_json(comment("open the door"))
+        assert recv_until(bob, "whisper")["data"]["text"] == "open the door"
+        assert recv_until(alice, "whisper")["data"]["text"] == "open the door"
+
+
+def test_late_joiner_sees_recent_comments(client):
+    with client.websocket_connect("/ws/audience") as alice:
+        for t in ["one", "two", "three"]:
+            alice.send_json(comment(t))
+            recv_until(alice, "ack")
+        with client.websocket_connect("/ws/audience") as late:
+            texts = [late.receive_json()["data"]["text"] for _ in range(3)]
+    assert texts == ["one", "two", "three"]

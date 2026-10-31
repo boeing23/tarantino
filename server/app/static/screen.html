@@ -1,62 +1,113 @@
 <!doctype html>
-<html>
+<html lang="en" data-theme="night">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Tarantino</title>
-<style>
-  body { font-family: system-ui, sans-serif; background: #000; color: #eee; margin: 0; height: 100vh; display: grid; grid-template-columns: 3fr 1fr; }
-  #stage { position: relative; background: #000 center/cover no-repeat; }
-  #sub { position: absolute; bottom: 0; left: 0; right: 0; padding: 24px 40px; font-size: 32px; background: linear-gradient(transparent, #000c); }
-  #side { padding: 20px; background: #111; overflow: hidden; display: flex; flex-direction: column; gap: 16px; }
-  #chosen { font-size: 22px; color: #e5b33b; }
-  #losers, #feed { opacity: .7; list-style: none; padding: 0; margin: 0; }
-  #join { text-align: center; font-size: 14px; opacity: .9; }
-  #join img { width: 100%; max-width: 220px; border-radius: 8px; display: block; margin: 0 auto 6px; }
-  #feed li { padding: 4px 0; border-bottom: 1px solid #222; }
-</style>
-</head>
-<body>
-<div id="stage"><div id="sub">Waiting for the story…</div></div>
-<div id="side">
-  <div id="join"><img src="/qr.svg" alt="Scan to join"><div>Scan to join · <span id="url"></span></div></div>
-  <div id="window"></div>
-  <div id="chosen"></div>
-  <ul id="losers"></ul>
-  <ul id="feed"></ul>
-</div>
-<audio id="audio"></audio>
+<link rel="stylesheet" href="/static/vendor/daisyui.css">
+<link rel="stylesheet" href="/static/vendor/daisyui-themes.css">
+<script src="/static/vendor/tailwind.js"></script>
+<script src="/static/live.js"></script>
 <script>
-const proto = location.protocol === "https:" ? "wss" : "ws";
-const $ = (id) => document.getElementById(id);
-const handlers = {
-  beat(b) {
-    $("sub").textContent = `${b.speaker}: ${b.text}`;
-    if (b.image_url) $("stage").style.backgroundImage = `url("${b.image_url}")`;
-    if (b.audio_url) { $("audio").src = b.audio_url; $("audio").play().catch(() => {}); }
-  },
-  window(w) { $("window").textContent = w.state === "open" ? `Listening… (${Math.round(w.locks_in_s)}s)` : "Deciding…"; },
-  whisper(w) {
-    const li = document.createElement("li");
-    li.textContent = w.text;
-    $("feed").prepend(li);
-    while ($("feed").children.length > 15) $("feed").lastChild.remove();
-  },
-  intent(i) {
-    $("chosen").textContent = i.intent ? `Audience chose: ${i.intent}` : "No suggestions this round";
-    $("losers").replaceChildren(...i.top_suggestions.slice(1).map((s) => {
-      const li = document.createElement("li");
-      li.textContent = `${s.text} (${s.votes})`;
-      return li;
-    }));
-  },
-};
-fetch("/join").then((r) => r.json()).then((j) => $("url").textContent = j.url);
-function connect() {
-  const ws = new WebSocket(`${proto}://${location.host}/ws/screen`);
-  ws.onmessage = (e) => { const { type, data } = JSON.parse(e.data); handlers[type]?.(data); };
-  ws.onclose = () => setTimeout(connect, 1000);
+function screen() {
+  return {
+    ...countdown(),
+    status: "connecting",
+    beat: null,
+    windowState: null,
+    chosen: null,
+    feed: [],
+    joinUrl: "",
+    init() {
+      this.tick();
+      this.refreshJoin();
+      setInterval(() => this.refreshJoin(), 5000);
+      const audio = this.$refs.audio;
+      live("screen", {
+        status: (s) => (this.status = s),
+        beat: (b) => {
+          this.beat = b;
+          if (b.audio_url) { audio.src = b.audio_url; audio.play().catch(() => {}); }
+        },
+        window: (w) => {
+          this.windowState = w.state;
+          if (w.state === "open") this.start(w.locks_in_s);
+        },
+        whisper: (w) => (this.feed = [{ id: crypto.randomUUID(), text: w.text }, ...this.feed].slice(0, 12)),
+        intent: (i) => (this.chosen = i),
+      });
+    },
+    async refreshJoin() {
+      try { this.joinUrl = (await (await fetch("/join")).json()).url; } catch {}
+    },
+    get totalVotes() { return (this.chosen?.top_suggestions ?? []).reduce((n, s) => n + s.votes, 0) || 1; },
+  };
 }
-connect();
 </script>
+<script defer src="/static/vendor/alpine.js"></script>
+</head>
+<body class="bg-black">
+<main x-data="screen()" class="grid min-h-dvh grid-cols-1 lg:h-dvh lg:grid-cols-[1fr_22rem]">
+  <section class="relative min-h-[60dvh] bg-cover bg-center"
+    :style="beat?.image_url ? `background-image:url('${beat.image_url}')` : ''">
+    <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/80 to-transparent p-6 pt-24 lg:p-12 lg:pt-32">
+      <template x-if="beat">
+        <div x-transition>
+          <div class="badge badge-primary badge-lg mb-3" x-text="beat.speaker"></div>
+          <p class="text-2xl leading-snug text-white lg:text-4xl" x-text="beat.text"></p>
+        </div>
+      </template>
+      <p x-show="!beat" class="text-2xl text-white/60">The story is about to begin…</p>
+    </div>
+    <span class="badge absolute right-4 top-4" :class="status === 'live' ? 'badge-success' : 'badge-warning'" x-text="status"></span>
+  </section>
+
+  <aside class="flex flex-col gap-4 overflow-hidden bg-base-200 p-4">
+    <div class="card bg-base-100">
+      <div class="card-body items-center p-4 text-center">
+        <img class="w-48 rounded-lg bg-white p-1" :src="joinUrl && `/qr.svg?u=${encodeURIComponent(joinUrl)}`" alt="Scan to join">
+        <p class="text-sm font-semibold">Scan to steer the story</p>
+        <p class="break-all text-xs opacity-60" x-text="joinUrl"></p>
+      </div>
+    </div>
+
+    <div class="card bg-base-100">
+      <div class="card-body gap-2 p-4">
+        <div class="flex justify-between text-sm">
+          <span x-show="windowState === 'open'" class="text-success">Listening</span>
+          <span x-show="windowState === 'locked'" class="text-warning">Deciding…</span>
+          <span x-show="!windowState" class="opacity-60">Waiting</span>
+          <span x-show="windowState === 'open'" x-text="`${remaining()}s`"></span>
+        </div>
+        <div class="h-2 w-full overflow-hidden rounded-full bg-base-300"><div class="h-full rounded-full bg-success transition-[width] duration-300" :style="`width:${windowState === 'open' ? progress() : 0}%`"></div></div>
+      </div>
+    </div>
+
+    <div class="card bg-base-100" x-show="chosen" x-transition>
+      <div class="card-body gap-3 p-4">
+        <h2 class="text-xs uppercase tracking-widest opacity-60">Audience chose</h2>
+        <p class="text-lg font-semibold text-primary" x-text="chosen?.intent ?? 'No suggestions this round'"></p>
+        <template x-for="s in chosen?.top_suggestions ?? []" :key="s.text">
+          <div>
+            <div class="flex justify-between text-sm"><span x-text="s.text"></span><span x-text="s.votes"></span></div>
+            <div class="h-2 w-full overflow-hidden rounded-full bg-base-300"><div class="h-full rounded-full bg-primary transition-[width] duration-300" :style="`width:${s.votes / totalVotes * 100}%`"></div></div>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <div class="card min-h-0 flex-1 bg-base-100">
+      <div class="card-body min-h-0 gap-2 p-4">
+        <h2 class="text-xs uppercase tracking-widest opacity-60">Live whispers</h2>
+        <ul class="flex flex-col gap-2 overflow-hidden">
+          <template x-for="w in feed" :key="w.id">
+            <li class="chat chat-start" x-transition><div class="chat-bubble chat-bubble-neutral text-sm" x-text="w.text"></div></li>
+          </template>
+        </ul>
+      </div>
+    </div>
+  </aside>
+  <audio x-ref="audio"></audio>
+</main>
 </body>
 </html>

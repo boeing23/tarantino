@@ -1,8 +1,9 @@
 import asyncio
 import time
+from collections import deque
 
 from app.aggregate import Aggregator
-from app.contract import AudienceIntent, Beat, WindowState, envelope
+from app.contract import AudienceIntent, Beat, Whisper, WindowState, envelope
 from app.events import emit
 from app.hub import ROLES, Hub
 from app.metrics import Metrics
@@ -21,7 +22,29 @@ class Show:
         self.intent_sent_at: float | None = None
         self.queue: asyncio.Queue[Beat] = asyncio.Queue()
         self.current: Beat | None = None
+        self.last_intent: AudienceIntent | None = None
+        self.window_state: WindowState | None = None
+        self.lock_at = 0.0
+        self.recent: deque[Whisper] = deque(maxlen=30)
         self.started = False
+
+    async def whisper(self, w: Whisper) -> None:
+        self.recent.append(w)
+        await self.hub.send(("screen", "audience"), envelope("whisper", w))
+
+    def snapshot(self) -> list[dict]:
+        msgs = []
+        if self.current:
+            msgs.append(envelope("beat", self.current))
+        if self.window_state:
+            w = self.window_state
+            if w.state == "open":
+                w = w.model_copy(update={"locks_in_s": max(0.0, self.lock_at - time.monotonic())})
+            msgs.append(envelope("window", w))
+        if self.last_intent:
+            msgs.append(envelope("intent", self.last_intent))
+        msgs.extend(envelope("whisper", w) for w in self.recent)
+        return msgs
 
     async def on_engine_connect(self, ws) -> None:
         if not self.started:
@@ -55,15 +78,19 @@ class Show:
         lead = min(self.lock_lead_s, beat.duration_s)
         open_for = beat.duration_s - lead
         wid = self.window.current_id
-        await self.hub.send(ROLES, envelope("window", WindowState(window_id=wid, state="open", locks_in_s=open_for)))
+        self.window_state = WindowState(window_id=wid, state="open", locks_in_s=open_for)
+        self.lock_at = time.monotonic() + open_for
+        await self.hub.send(ROLES, envelope("window", self.window_state))
         emit("window.open", window_id=wid, locks_in_s=open_for)
         await asyncio.sleep(open_for)
         wid, comments = self.window.cut()
         self.metrics.windows_total += 1
-        await self.hub.send(ROLES, envelope("window", WindowState(window_id=wid, state="locked")))
+        self.window_state = WindowState(window_id=wid, state="locked")
+        await self.hub.send(ROLES, envelope("window", self.window_state))
         emit("window.lock", window_id=wid, comments=len(comments))
         intent = await self.aggregate(wid, comments)
-        await self.hub.send(("engine", "screen"), envelope("intent", intent))
+        self.last_intent = intent
+        await self.hub.send(ROLES, envelope("intent", intent))
         self.intent_sent_at = time.monotonic()
         emit("intent.sent", window_id=wid, intent=intent.intent, confidence=intent.confidence,
              comments=intent.comment_count, engines=self.hub.counts()["engine"])
