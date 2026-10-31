@@ -7,7 +7,7 @@ from app.main import create_app
 
 @pytest.fixture
 def settings():
-    return Settings(lock_lead_s=0.05)
+    return Settings(lock_lead_s=0.05, public_url="", lan_url="", tunnel_api="", blocklist=set())
 
 
 @pytest.fixture

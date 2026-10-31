@@ -32,7 +32,7 @@ def test_window_locks_before_beat_ends_and_engine_gets_winning_intent(client):
         client.websocket_connect("/ws/audience") as phone,
     ):
         recv_until(engine, "intent")
-        engine.send_json(beat("b1", duration_s=0.3))
+        engine.send_json(beat("b1", duration_s=1.0))
         recv_until(screen, "beat")
         for t in ["open the door", "Open the door!", "run"]:
             phone.send_json(comment(t))

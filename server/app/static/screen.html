@@ -10,12 +10,15 @@
   #side { padding: 20px; background: #111; overflow: hidden; display: flex; flex-direction: column; gap: 16px; }
   #chosen { font-size: 22px; color: #e5b33b; }
   #losers, #feed { opacity: .7; list-style: none; padding: 0; margin: 0; }
+  #join { text-align: center; font-size: 14px; opacity: .9; }
+  #join img { width: 100%; max-width: 220px; border-radius: 8px; display: block; margin: 0 auto 6px; }
   #feed li { padding: 4px 0; border-bottom: 1px solid #222; }
 </style>
 </head>
 <body>
 <div id="stage"><div id="sub">Waiting for the story…</div></div>
 <div id="side">
+  <div id="join"><img src="/qr.svg" alt="Scan to join"><div>Scan to join · <span id="url"></span></div></div>
   <div id="window"></div>
   <div id="chosen"></div>
   <ul id="losers"></ul>
@@ -47,6 +50,7 @@ const handlers = {
     }));
   },
 };
+fetch("/join").then((r) => r.json()).then((j) => $("url").textContent = j.url);
 function connect() {
   const ws = new WebSocket(`${proto}://${location.host}/ws/screen`);
   ws.onmessage = (e) => { const { type, data } = JSON.parse(e.data); handlers[type]?.(data); };

@@ -1,5 +1,7 @@
 from fastapi import WebSocket
 
+from app.events import emit
+
 ROLES = ("audience", "screen", "engine")
 
 
@@ -21,5 +23,6 @@ class Hub:
             for ws in list(self.clients[role]):
                 try:
                     await ws.send_json(msg)
-                except Exception:
+                except Exception as e:
                     self.leave(role, ws)
+                    emit("ws.send_failed", role=role, error=type(e).__name__, **self.counts())
